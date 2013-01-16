@@ -112,6 +112,9 @@
       if (!this.url) {
         this.url = '';
       }
+      if (!this.opts) {
+        this.opts = {};
+      }
     }
 
     RestClient.prototype.add = function(name) {
@@ -131,6 +134,7 @@
     };
 
     RestClient.prototype.ajax = function(type, url, data, headers) {
+      var encoded;
       if (data == null) {
         data = {};
       }
@@ -138,16 +142,17 @@
         headers = {};
       }
       if (!type) {
-        throw "type missing";
+        error("type missing");
       }
       if (!url) {
-        throw "url missing";
+        error("url missing");
       }
-      if (this.username && this.password) {
+      if (this.opts.username && this.opts.password) {
         if (!window.btoa) {
-          throw "You need a polyfill for 'btoa' to use basic auth.";
+          error("You need a polyfill for 'btoa' to use basic auth.");
         }
-        headers.Authorize = window.btoa(this.username + ":" + this.password);
+        encoded = window.btoa(this.opts.username + ":" + this.opts.password);
+        headers.Authorization = "Basic " + encoded;
       }
       return $.ajax({
         url: url,

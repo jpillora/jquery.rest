@@ -78,6 +78,7 @@ class RestClient
       @opts = urlOrOpts
       @url = @opts.url
     @url = '' unless @url
+    @opts = {} unless @opts
 
   add: (name) -> @[name] = new Resource name, @
   remove: (name) -> delete @[name]
@@ -85,12 +86,13 @@ class RestClient
     $.each @, (name,res) ->
       res.show() if res instanceof Resource
   ajax: (type, url, data = {}, headers = {})->
-    throw "type missing"  unless type
-    throw "url missing"  unless url
+    error "type missing"  unless type
+    error "url missing"  unless url
     # console.log type, url, data
-    if @username and @password
-      throw "You need a polyfill for 'btoa' to use basic auth." unless window.btoa
-      headers.Authorize = window.btoa @username + ":" + @password
+    if @opts.username and @opts.password
+      error "You need a polyfill for 'btoa' to use basic auth." unless window.btoa
+      encoded = window.btoa @opts.username + ":" + @opts.password
+      headers.Authorization = "Basic #{encoded}"
 
     $.ajax {
       url
