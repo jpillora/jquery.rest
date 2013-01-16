@@ -1,0 +1,10 @@
+{
+  "title": "jQuery REST Client",
+  "name": "jquery.rest",
+  "version": "1.0.0",
+  "author": {
+    "name": "Jaime Pillora"
+  },
+  "homepage": "https://github.com/jpillora/jquery.rest",
+  "license": "MIT"
+}
