@@ -2,8 +2,6 @@ jQuery REST Client
 =====
 v0.0.1a
 
-*Note: These docs are a work in progress.*
-
 Summary
 ---
 A jQuery plugin for easy consumption of REST APIs
@@ -14,10 +12,21 @@ Downloads
 * [Development Version](http://raw.github.com/jpillora/jquery.rest/gh-pages/dist/jquery.rest.js)
 * [Production Version](http://raw.github.com/jpillora/jquery.rest/gh-pages/dist/jquery.rest.min.js)
 
+Features
+---
+* Simple !
+* Helpful Error Messages
+* Uses jQuery Deferred for Asynchonous chaining
+* Basic Auth Support
+
 Basic Usage
 ---
 
-The following HTML:
+1. Create a client.
+2. Construct your API.
+3. Make requests.
+
+See examples below:
 
 ``` html
 <!-- jQuery -->
@@ -62,23 +71,29 @@ The following HTML:
     alert('Hooray ! I have: ' + data.foo);
   });
 
+  //BASIC AUTH
+  var client2 = new $.RestClient({
+    url: '/api/rest/',
+    username: 'admin',
+    password: 'secr3t'
+  });
+
+  client2.add('foo');
+  
+  client2.foo.read();
+  //Adds header: "Authorization: Basic YWRtaW46c2VjcjN0"
+
 </script>
 ```
 
-Conceptual Overview
----
-Create a client.
-Construct your API.
-Make requests.
-
 Todo
 ---
-* CSRF Stuff
+* CSRF
 * Method Override Header
 
 Contributing
 ---
-Issues and Pull-requests welcome, though please add tests. To build and test: `cd *dir*` then `npm install` then `grunt`.
+Issues and Pull-requests welcome. To build: `cd *dir*` then `npm install` then `grunt`.
 
 Change Log
 ---
