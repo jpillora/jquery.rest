@@ -45,11 +45,8 @@ module.exports = function(grunt) {
 
     watch: {
       scripts: {
-        files: 'src/**/*.coffee',
-        tasks: 'default',
-        options: {
-          debounceDelay: 1000
-        }
+        files: 'src/*.coffee',
+        tasks: 'default'
       }
     },
     jshint: {
@@ -82,7 +79,7 @@ module.exports = function(grunt) {
 
   // Default task.
   grunt.registerTask('default', 'coffee concat lint min');
-  grunt.renameTask('watch', 'real-watch');
-  grunt.registerTask('watch', 'default real-watch');
+  //grunt.renameTask('watch', 'realwatch');
+  // grunt.registerTask('watch', 'default real-watch');
 
 };

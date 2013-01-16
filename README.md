@@ -27,21 +27,43 @@ The following HTML:
 <script src="//raw.github.com/jpillora/jquery.rest/gh-pages/dist/jquery.rest.min.js"></script>
 
 <script>
-  //TODO
+  var client = new $.RestClient('/api/rest/');
+
+  client.add('foo');
+  client.foo.add('baz');
+  client.add('bar');
+
+  client.show();
+  // CONSOLE SAYS:
+  // foo: /api/rest/foo/:ID_0/
+  // baz: /api/rest/foo/:ID_0/baz/:ID_1/
+  // bar: /api/rest/bar/:ID_0/
+
+  //BASIC EXAMPLES
+  client.foo.create({a:21,b:42});
+  // POST /api/rest/foo/ (with data a=21 and b=42)
+  client.foo.read();
+  // GET /api/rest/foo/
+  client.foo.read("42");
+  // GET /api/rest/foo/42/
+  client.foo.update("42");
+  // PUT /api/rest/foo/42/
+  client.foo.delete("42");
+  // DELETE /api/rest/foo/42/
+
+  //NESTED RESOURCES
+  client.foo.baz.read("42");
+  // GET /api/rest/foo/42/baz/
+  client.foo.baz.read("42", "21");
+  // GET /api/rest/foo/42/baz/21/
+
+  //RESULTS USE '$.Deferred'
+  client.foo.read().success(function(data) {
+    alert('Hooray ! I have: ' + data.foo);
+  });
+
 </script>
 ```
-
-Demos
----
-TODO
-
-API
----
-TODO
-
-Options:
----
-TODO
 
 Conceptual Overview
 ---
@@ -51,7 +73,8 @@ Make requests.
 
 Todo
 ---
-EVERYTHINGGG
+* CSRF Stuff
+* Method Override Header
 
 Contributing
 ---
