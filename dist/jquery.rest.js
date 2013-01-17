@@ -1,4 +1,4 @@
-/*! jQuery REST Client - v1.0.0 - 2013-01-17
+/*! jQuery REST Client - v1.0.0 - 2013-01-18
 * https://github.com/jpillora/jquery.rest
 * Copyright (c) 2013 Jaime Pillora; Licensed MIT */
 
@@ -139,9 +139,6 @@
 
     RestClient.prototype.ajax = function(type, url, data, headers) {
       var encoded;
-      if (data == null) {
-        data = {};
-      }
       if (headers == null) {
         headers = {};
       }
@@ -158,11 +155,15 @@
         encoded = window.btoa(this.opts.username + ":" + this.opts.password);
         headers.Authorization = "Basic " + encoded;
       }
+      if (data && this.opts.stringifyData) {
+        data = JSON.stringify(data);
+      }
       return $.ajax({
         url: url,
         type: type,
         headers: headers,
         data: data,
+        processData: false,
         dataType: "json"
       });
     };

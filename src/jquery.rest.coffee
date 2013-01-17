@@ -85,7 +85,7 @@ class RestClient
   show: ->
     $.each @, (name,res) ->
       res.show() if res instanceof Resource
-  ajax: (type, url, data = {}, headers = {})->
+  ajax: (type, url, data, headers = {})->
     error "type missing"  unless type
     error "url missing"  unless url
     # console.log type, url, data
@@ -94,11 +94,16 @@ class RestClient
       encoded = window.btoa @opts.username + ":" + @opts.password
       headers.Authorization = "Basic #{encoded}"
 
+    if data and @opts.stringifyData
+      error "You need a polyfill for 'JSON' to use stringify." unless window.JSON
+      data = window.JSON.stringify data
+
     $.ajax {
       url
       type
       headers
       data
+      processData: false
       dataType: "json"
     }
 
