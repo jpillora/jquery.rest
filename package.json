@@ -1,6 +1,6 @@
 {
-  "name": "jquery.prompt",
-  "version": "1.0.0",
+  "name": "jquery.rest",
+  "version": "0.0.1",
   "dependencies":[
     "grunt",
     "grunt-contrib-watch",

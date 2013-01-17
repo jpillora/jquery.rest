@@ -1,7 +1,9 @@
 (function() {
   'use strict';
 
-  var Resource, RestClient, error, operations;
+  var Operation, Resource, RestClient, error, operations, s,
+    __hasProp = {}.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
   error = function(msg) {
     throw "ERROR: jquery.rest: " + msg;
@@ -14,10 +16,50 @@
     'delete': 'DELETE'
   };
 
+  s = function(n) {
+    var t;
+    t = "";
+    n *= 2;
+    while (--n) {
+      t += " ";
+    }
+    return t;
+  };
+
+  Operation = (function() {
+
+    function Operation(name, type, parent) {
+      var custom, self;
+      if (!name) {
+        error("name required");
+      }
+      if (!type) {
+        error("type required");
+      }
+      if (!parent) {
+        error("parent required");
+      }
+      if (parent[name]) {
+        error("cannot add: '" + name + "' as it already exists");
+      }
+      custom = operations[name] ? "" : name;
+      self = function() {
+        var data, url, _ref;
+        _ref = this.extractUrlData(type, arguments), url = _ref.url, data = _ref.data;
+        return this.client.ajax(type, url + custom, data);
+      };
+      self.isOperation = true;
+      self.type = type;
+      return self;
+    }
+
+    return Operation;
+
+  })();
+
   Resource = (function() {
 
     function Resource(name, parent) {
-      var _this = this;
       this.name = name;
       this.parent = parent;
       if (!this.name) {
@@ -38,24 +80,33 @@
       }
       this.urlNoId = this.parent.url + ("" + this.name + "/");
       this.url = this.urlNoId + (":ID_" + this.numParents + "/");
-      $.each(operations, function(op, type) {
-        return _this[op] = function() {
-          var data, url, _ref;
-          _ref = this.extractUrlData(type, arguments), url = _ref.url, data = _ref.data;
-          return this.client.ajax(type, url, data);
-        };
-      });
+      $.each(operations, $.proxy(this.add, this));
     }
 
-    Resource.prototype.add = function(name) {
-      return this[name] = new Resource(name, this);
+    Resource.prototype.add = function(name, type) {
+      if (type) {
+        this[name] = new Operation(name, type, this);
+      } else {
+        this[name] = new Resource(name, this);
+      }
+      return null;
     };
 
-    Resource.prototype.show = function() {
-      console.log("" + this.name + ": " + this.url);
+    Resource.prototype.show = function(d) {
+      if (d == null) {
+        d = 0;
+      }
+      if (this.name) {
+        console.log(s(d) + this.name + ": " + this.url);
+      }
+      $.each(this, function(name, value) {
+        if (value.isOperation === true) {
+          return console.log(s(d + 1) + value.type + ": " + name);
+        }
+      });
       return $.each(this, function(name, res) {
-        if (name !== "parent" && res instanceof Resource) {
-          return res.show();
+        if (name !== "parent" && name !== "client" && res instanceof Resource) {
+          return res.show(d + 1);
         }
       });
     };
@@ -64,7 +115,7 @@
       return this.name;
     };
 
-    Resource.prototype.extractUrlData = function(type, args) {
+    Resource.prototype.extractUrlData = function(name, args) {
       var arg, data, i, id, ids, numIds, url, _i, _j, _len, _len1;
       ids = [];
       data = null;
@@ -79,9 +130,9 @@
         }
       }
       numIds = ids.length;
-      if (type !== 'POST' && numIds === this.numParents + 1) {
+      if (name !== 'create' && numIds === this.numParents + 1) {
         url = this.url;
-      } else if ((type === 'GET' || type === 'POST') && numIds === this.numParents) {
+      } else if ((name !== 'update' && name !== 'delete') && numIds === this.numParents) {
         url = this.urlNoId;
       } else {
         error("Invalid number of ID parameters provided (" + numIds + ")");
@@ -100,7 +151,9 @@
 
   })();
 
-  RestClient = (function() {
+  RestClient = (function(_super) {
+
+    __extends(RestClient, _super);
 
     function RestClient(urlOrOpts) {
       if ($.type(urlOrOpts) === 'string') {
@@ -112,26 +165,13 @@
       if (!this.url) {
         this.url = '';
       }
+      if (!this.url) {
+        this.url = '';
+      }
       if (!this.opts) {
         this.opts = {};
       }
     }
-
-    RestClient.prototype.add = function(name) {
-      return this[name] = new Resource(name, this);
-    };
-
-    RestClient.prototype.remove = function(name) {
-      return delete this[name];
-    };
-
-    RestClient.prototype.show = function() {
-      return $.each(this, function(name, res) {
-        if (res instanceof Resource) {
-          return res.show();
-        }
-      });
-    };
 
     RestClient.prototype.ajax = function(type, url, data, headers) {
       var encoded;
@@ -152,7 +192,10 @@
         headers.Authorization = "Basic " + encoded;
       }
       if (data && this.opts.stringifyData) {
-        data = JSON.stringify(data);
+        if (!window.JSON) {
+          error("You need a polyfill for 'JSON' to use stringify.");
+        }
+        data = window.JSON.stringify(data);
       }
       return $.ajax({
         url: url,
@@ -166,7 +209,7 @@
 
     return RestClient;
 
-  })();
+  })(Resource);
 
   $.RestClient = RestClient;
 

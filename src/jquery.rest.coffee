@@ -10,6 +10,26 @@ operations =
   'update' : 'PUT'
   'delete' : 'DELETE'
 
+s = (n) ->
+  t = ""; n *= 2;
+  t += " " while --n
+  t
+
+class Operation
+  constructor: (name, type, parent) ->
+    error "name required" unless name
+    error "type required" unless type
+    error "parent required" unless parent
+    error "cannot add: '#{name}' as it already exists" if parent[name]
+
+    custom = if operations[name] then "" else name
+    self = ->
+      {url, data} = @extractUrlData type, arguments
+      @client.ajax type, url+custom, data
+    self.isOperation = true
+    self.type = type
+    return self
+
 #resource class - represents one set of crud ops
 class Resource
   constructor: (@name, @parent) ->
@@ -27,25 +47,26 @@ class Resource
 
     @urlNoId = @parent.url + "#{@name}/"
     @url = @urlNoId + ":ID_#{@numParents}/"
+    $.each operations, $.proxy @add, @    
 
-    #build operations
-    $.each operations, (op, type) =>
-      @[op] = ->
-        {url, data} = @extractUrlData type, arguments
-        @client.ajax type, url, data
-
-  add: (name) ->
-    @[name] = new Resource name, @
+  add: (name, type) ->
+    if type
+      @[name] = new Operation name, type, @
+    else
+      @[name] = new Resource name, @
+    null
   
-  show: ()->
-    console.log "#{@name}: #{@url}"
+  show: (d=0)->
+    console.log(s(d)+@name+": "+@url) if @name
+    $.each @, (name,value) ->
+      console.log(s(d+1)+value.type+": " +name) if value.isOperation is true
     $.each @, (name,res) ->
-      if name isnt "parent" and res instanceof Resource
-        res.show()
+      if name isnt "parent" and name isnt "client" and res instanceof Resource
+        res.show(d+1)
 
   toString: -> @name
 
-  extractUrlData: (type, args) ->
+  extractUrlData: (name, args) ->
     ids = []
     data = null
     for arg in args
@@ -58,9 +79,9 @@ class Resource
 
     numIds = ids.length
 
-    if type isnt 'POST' and numIds is @numParents + 1
+    if name isnt 'create' and numIds is @numParents + 1
       url = @url
-    else if (type is 'GET' or type is 'POST') and numIds is @numParents
+    else if (name isnt 'update' and name isnt 'delete') and numIds is @numParents
       url = @urlNoId
     else
       error "Invalid number of ID parameters provided (#{numIds})"
@@ -70,7 +91,8 @@ class Resource
 
     {url, data}
 
-class RestClient
+
+class RestClient extends Resource
   constructor: (urlOrOpts) ->
     if $.type(urlOrOpts) is 'string'
       @url = urlOrOpts
@@ -78,13 +100,10 @@ class RestClient
       @opts = urlOrOpts
       @url = @opts.url
     @url = '' unless @url
+    @url = '' unless @url
     @opts = {} unless @opts
 
-  add: (name) -> @[name] = new Resource name, @
-  remove: (name) -> delete @[name]
-  show: ->
-    $.each @, (name,res) ->
-      res.show() if res instanceof Resource
+
   ajax: (type, url, data, headers = {})->
     error "type missing"  unless type
     error "url missing"  unless url
@@ -106,6 +125,5 @@ class RestClient
       processData: false
       dataType: "json"
     }
-
 # Public API
 $.RestClient = RestClient

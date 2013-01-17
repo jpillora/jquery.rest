@@ -11,6 +11,8 @@
   client.foo.add('baz');
   client.add('bar');
 
+  client.foo.baz.add('sizzle','POST');
+
   client.show();
   // CONSOLE SAYS:
   // foo: /api/rest/foo/:ID_0/
@@ -28,6 +30,8 @@
   // PUT /api/rest/foo/42/
   client.foo.delete("42");
   // DELETE /api/rest/foo/42/
+
+  client.foo.baz.sizzle("42","21");
 
   //NESTED RESOURCES
   client.foo.baz.read("42");
