@@ -24,6 +24,33 @@ stringify = (obj) ->
   error "You need a polyfill for 'JSON' to use stringify." unless window.JSON
   window.JSON.stringify obj
 
+inheritExtend = (a, b) ->
+  F = () ->
+  F.prototype = a
+  $.extend new F(), b
+
+getNameData = (data) ->
+  if $.isPlainObject data
+    name = data.name or data.url
+  else if 'string' is $.type data
+    name = data
+    data = null
+  else
+    error "Invalid data. Must be an object or string."
+  { data, name }
+
+#defaults
+defaultOpts =
+  url: ''
+  cache: 0
+  stringifyData: false
+  dataType: 'json'
+  processData: true
+  crossDomain: false
+  timeout: null
+  username: null
+  password: null
+
 #ajax cache with timeouts
 class Cache
   constructor: (@parent) ->
@@ -39,13 +66,13 @@ class Cache
       return 
     if @valid result.entry
       return result.data
-    @c[key] = null
     return
   put: (key, data) ->
     @c[key] =
       entry: new Date()
       data: data
-
+  flush: (key) ->
+    if key then @c[key] = null else @c = {}
 
 #represents one operation Create,Read,...
 class Operation
@@ -53,15 +80,15 @@ class Operation
     error "name required" unless name
     error "type required" unless type
     error "parent required" unless parent
-    error "cannot add: '#{name}' as it already exists" if parent[name]
+    error "Cannot add Operation: '#{name}' already exists" if parent[name]
     custom = !operations[name] 
     type = type.toUpperCase()
-    self = ->
+    ajax = ->
       {url, data} = @extractUrlData type, arguments
       @ajax type, url+(if custom then name else ""), data
-    self.isOperation = true
-    self.type = type
-    return self
+    ajax.isOperation = true
+    ajax.type = type
+    return ajax
 
 #resource class - represents one set of crud ops
 class Resource
@@ -72,11 +99,11 @@ class Resource
     else
       @constructRoot data
 
-  constructRoot: (data) ->
-    if $.type(data) is 'string'
-      @url = data
-    else if $.isPlainObject(data)
-      $.extend @opts, data
+  constructRoot: (data = '') ->
+    {name, data} = getNameData data
+    @url = name
+    data = data or {}
+    @opts = inheritExtend defaultOpts, data
     @url = @opts.url unless @url
     @urlNoId = @url
     @cache = new Cache @
@@ -84,49 +111,40 @@ class Resource
     @root = @
     @name = 'ROOT'
 
-  constructChild: (name, parent) ->
-    error "invalid parent"  unless parent instanceof Resource
+  constructChild: (data, parent) ->
+    error "Invalid parent"  unless parent instanceof Resource
+    {name, data} = getNameData data
     error "name required" unless name
-    error "name must be string" unless $.type(name) is 'string'
-    error "cannot add: '#{name}' as it already exists" if parent[name]
+    data = data or {}
+    error "Cannot add Resource: '#{name}' already exists" if parent[name]
 
+    @parent = parent
     @root = parent.root
-    @opts = @root.opts
+    @opts = inheritExtend parent.opts, data
     @name = name
-
     @numParents = parent.numParents + 1
-
     @urlNoId = parent.url + "#{@name}/"
     @url = @urlNoId + ":ID_#{@numParents}/"
-    #add all standard operations to each 
+    #add all standard CRUD operations 
     $.each operations, $.proxy @add, @
     @del = @delete
 
-  #defaults
-  opts:
-    url: ''
-    cache: 0
-    stringifyData: false
-    dataType: 'json'
-    processData: true
-    crossDomain: false
-    timeout: null
-    username: null
-    password: null
+  add: (data, type) ->
+    {name, data} = getNameData data
 
-  add: (name, type) ->
     if type
       @[name] = new Operation name, type, @
     else
-      @[name] = new Resource name, @
+      @[name] = new Resource data or name, @
     null
   
   show: (d=0)->
+    error "Recurrsion Fail" if d > 15
     console.log(s(d)+@name+": "+@url) if @name
     $.each @, (name,value) ->
       console.log(s(d+1)+value.type+": " +name) if value.isOperation is true and name isnt 'del'
     $.each @, (name,res) =>
-      if res isnt "parent" and name isnt "root" and res instanceof Resource
+      if name isnt "parent" and name isnt "root" and res instanceof Resource
         res.show(d+1)
     null
 
@@ -186,15 +204,15 @@ class Resource
     }
 
     if @opts.cache
-      key = @cache.key ajaxOpts
-      req = @cache.get key
+      key = @root.cache.key ajaxOpts
+      req = @root.cache.get key
       return req if req
 
     req = $.ajax ajaxOpts
 
     if @opts.cache
       req.complete =>
-        @cache.put key, req
+        @root.cache.put key, req
 
     return req
 

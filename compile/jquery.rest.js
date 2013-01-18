@@ -1,7 +1,7 @@
 (function() {
   'use strict';
 
-  var Cache, Operation, Resource, encode64, error, operations, s, stringify;
+  var Cache, Operation, Resource, defaultOpts, encode64, error, getNameData, inheritExtend, operations, s, stringify;
 
   error = function(msg) {
     throw "ERROR: jquery.rest: " + msg;
@@ -38,6 +38,41 @@
     return window.JSON.stringify(obj);
   };
 
+  inheritExtend = function(a, b) {
+    var F;
+    F = function() {};
+    F.prototype = a;
+    return $.extend(new F(), b);
+  };
+
+  getNameData = function(data) {
+    var name;
+    if ($.isPlainObject(data)) {
+      name = data.name || data.url;
+    } else if ('string' === $.type(data)) {
+      name = data;
+      data = null;
+    } else {
+      error("Invalid data. Must be an object or string.");
+    }
+    return {
+      data: data,
+      name: name
+    };
+  };
+
+  defaultOpts = {
+    url: '',
+    cache: 0,
+    stringifyData: false,
+    dataType: 'json',
+    processData: true,
+    crossDomain: false,
+    timeout: null,
+    username: null,
+    password: null
+  };
+
   Cache = (function() {
 
     function Cache(parent) {
@@ -64,7 +99,6 @@
       if (this.valid(result.entry)) {
         return result.data;
       }
-      this.c[key] = null;
     };
 
     Cache.prototype.put = function(key, data) {
@@ -74,6 +108,14 @@
       };
     };
 
+    Cache.prototype.flush = function(key) {
+      if (key) {
+        return this.c[key] = null;
+      } else {
+        return this.c = {};
+      }
+    };
+
     return Cache;
 
   })();
@@ -81,7 +123,7 @@
   Operation = (function() {
 
     function Operation(name, type, parent) {
-      var custom, self;
+      var ajax, custom;
       if (!name) {
         error("name required");
       }
@@ -92,18 +134,18 @@
         error("parent required");
       }
       if (parent[name]) {
-        error("cannot add: '" + name + "' as it already exists");
+        error("Cannot add Operation: '" + name + "' already exists");
       }
       custom = !operations[name];
       type = type.toUpperCase();
-      self = function() {
+      ajax = function() {
         var data, url, _ref;
         _ref = this.extractUrlData(type, arguments), url = _ref.url, data = _ref.data;
         return this.ajax(type, url + (custom ? name : ""), data);
       };
-      self.isOperation = true;
-      self.type = type;
-      return self;
+      ajax.isOperation = true;
+      ajax.type = type;
+      return ajax;
     }
 
     return Operation;
@@ -121,11 +163,14 @@
     }
 
     Resource.prototype.constructRoot = function(data) {
-      if ($.type(data) === 'string') {
-        this.url = data;
-      } else if ($.isPlainObject(data)) {
-        $.extend(this.opts, data);
+      var name, _ref;
+      if (data == null) {
+        data = '';
       }
+      _ref = getNameData(data), name = _ref.name, data = _ref.data;
+      this.url = name;
+      data = data || {};
+      this.opts = inheritExtend(defaultOpts, data);
       if (!this.url) {
         this.url = this.opts.url;
       }
@@ -136,21 +181,22 @@
       return this.name = 'ROOT';
     };
 
-    Resource.prototype.constructChild = function(name, parent) {
+    Resource.prototype.constructChild = function(data, parent) {
+      var name, _ref;
       if (!(parent instanceof Resource)) {
-        error("invalid parent");
+        error("Invalid parent");
       }
+      _ref = getNameData(data), name = _ref.name, data = _ref.data;
       if (!name) {
         error("name required");
       }
-      if ($.type(name) !== 'string') {
-        error("name must be string");
-      }
+      data = data || {};
       if (parent[name]) {
-        error("cannot add: '" + name + "' as it already exists");
+        error("Cannot add Resource: '" + name + "' already exists");
       }
+      this.parent = parent;
       this.root = parent.root;
-      this.opts = this.root.opts;
+      this.opts = inheritExtend(parent.opts, data);
       this.name = name;
       this.numParents = parent.numParents + 1;
       this.urlNoId = parent.url + ("" + this.name + "/");
@@ -159,23 +205,13 @@
       return this.del = this["delete"];
     };
 
-    Resource.prototype.opts = {
-      url: '',
-      cache: 0,
-      stringifyData: false,
-      dataType: 'json',
-      processData: true,
-      crossDomain: false,
-      timeout: null,
-      username: null,
-      password: null
-    };
-
-    Resource.prototype.add = function(name, type) {
+    Resource.prototype.add = function(data, type) {
+      var name, _ref;
+      _ref = getNameData(data), name = _ref.name, data = _ref.data;
       if (type) {
         this[name] = new Operation(name, type, this);
       } else {
-        this[name] = new Resource(name, this);
+        this[name] = new Resource(data || name, this);
       }
       return null;
     };
@@ -184,6 +220,9 @@
       var _this = this;
       if (d == null) {
         d = 0;
+      }
+      if (d > 15) {
+        error("Recurrsion Fail");
       }
       if (this.name) {
         console.log(s(d) + this.name + ": " + this.url);
@@ -194,7 +233,7 @@
         }
       });
       $.each(this, function(name, res) {
-        if (res !== "parent" && name !== "root" && res instanceof Resource) {
+        if (name !== "parent" && name !== "root" && res instanceof Resource) {
           return res.show(d + 1);
         }
       });
@@ -278,8 +317,8 @@
         dataType: this.opts.dataType
       };
       if (this.opts.cache) {
-        key = this.cache.key(ajaxOpts);
-        req = this.cache.get(key);
+        key = this.root.cache.key(ajaxOpts);
+        req = this.root.cache.get(key);
         if (req) {
           return req;
         }
@@ -287,7 +326,7 @@
       req = $.ajax(ajaxOpts);
       if (this.opts.cache) {
         req.complete(function() {
-          return _this.cache.put(key, req);
+          return _this.root.cache.put(key, req);
         });
       }
       return req;

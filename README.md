@@ -179,6 +179,64 @@ client.foo.read().done(function(data) {
   //data is once again retrieved from the server
 });
 
+// Note: the cache can be cleared with:
+client.cache.clear();
+
+```
+
+Override Options Example
+``` javascript
+
+var client = new $.RestClient({
+  url: '/rest/api/',
+  cache: 5
+});
+
+client.add({
+  name: 'foo'
+});
+
+client.add({
+  name: 'bar',
+  cache: 10,
+  stringifyData: true
+});
+
+client.foo.read();
+// GET /rest/api/foo/ (using the inherited cache timeout of 5)
+
+client.bar.create({a:5});
+// POST /rest/api/foo/ (using a cache timeout of 10 and will also stringify the POST data)
+
+```
+
+Show API Example
+```
+var client = new $.RestClient('/rest/api/');
+
+client.add('foo');
+client.add('bar');
+client.foo.add('baz');
+
+client.show();
+
+// Console should say:
+// ROOT: /rest/api/ 
+//   foo: /rest/api/foo/:ID_1/ 
+//     POST: create 
+//     GET: read 
+//     PUT: update 
+//     DELETE: delete 
+//     baz: /rest/api/foo/:ID_1/baz/:ID_2/ 
+//       POST: create 
+//       GET: read 
+//       PUT: update 
+//       DELETE: delete 
+//   bar: /rest/api/bar/:ID_1/ 
+//     POST: create 
+//     GET: read 
+//     PUT: update 
+//     DELETE: delete 
 
 ```
 
@@ -201,6 +259,7 @@ When both username and password are provided. They will be base64 encoded using 
 
 **username** and **password**: string (default `null`)
 
+
 [jQuery's Ajax Options](http://api.jquery.com/jQuery.ajax/)
 
 **dataType**: string (default `'json'`)
@@ -211,6 +270,16 @@ When both username and password are provided. They will be base64 encoded using 
 
 **timeout**: number (default browser defined)
 
+
+*Note: Would you like more options ? Open up a New Feature Issue above.*
+
+Conceptual Overview
+---
+
+This plugin is made up nested 'Resource' classes. Resources contain options, child Resources and child Operations. Operations are functions that execute each the desired HTTP request.
+Both `new $.RestClient` and `client.add` construct new instances of Resource, however the former will create a root Resource, whereas the latter will create child Resources.
+
+Since each Resource can have it's own set of options, at instantiation time, options are inherited from parent Resources, allowing one default set of options with custom options on child Resources.
 
 Todo
 ---

@@ -13,30 +13,26 @@
 
   <script>
 
-    //display ajax result
-    function result(obj) {
-      console.log(obj);
-    }
-
     var client = new $.RestClient({
-      cache: 5
+      url: '/rest/api/',
+      stringifyData: true
     });
 
-    client.add('data', 'GET');
+    client.add({
+      name: 'foo',
+      stringifyData: false
+    });
+
+    client.add('bar');
 
     client.show();
 
-    var n = 0;
-    var request = function() {
-      console.log(n++);
-      client.data().done(result);
-      if(n <= 20) 
-      setTimeout(request, Math.random()*1500);
-    };
-    request();
+    //foo overrode 'stringifyData'
+    client.foo.create({data:42});
+    //bar inherits 'stringifyData'
+    client.bar.create({data:42});
 
   </script>
 
 </body>
 </html>
-
