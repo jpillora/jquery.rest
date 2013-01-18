@@ -1,9 +1,7 @@
 (function() {
   'use strict';
 
-  var Operation, Resource, RestClient, error, operations, s,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+  var Cache, Operation, Resource, encode64, error, operations, s, stringify;
 
   error = function(msg) {
     throw "ERROR: jquery.rest: " + msg;
@@ -20,16 +18,70 @@
     var t;
     t = "";
     n *= 2;
-    while (--n) {
+    while ((n--) > 0) {
       t += " ";
     }
     return t;
   };
 
+  encode64 = function(s) {
+    if (!window.btoa) {
+      error("You need a polyfill for 'btoa' to use basic auth.");
+    }
+    return window.btoa(s);
+  };
+
+  stringify = function(obj) {
+    if (!window.JSON) {
+      error("You need a polyfill for 'JSON' to use stringify.");
+    }
+    return window.JSON.stringify(obj);
+  };
+
+  Cache = (function() {
+
+    function Cache(parent) {
+      this.parent = parent;
+      this.c = {};
+    }
+
+    Cache.prototype.valid = function(date) {
+      var diff;
+      diff = new Date().getTime() - date.getTime();
+      return diff <= this.parent.opts.cache * 1000;
+    };
+
+    Cache.prototype.key = function(obj) {
+      return stringify(obj);
+    };
+
+    Cache.prototype.get = function(key) {
+      var result;
+      result = this.c[key];
+      if (!result) {
+        return;
+      }
+      if (this.valid(result.entry)) {
+        return result.data;
+      }
+      this.c[key] = null;
+    };
+
+    Cache.prototype.put = function(key, data) {
+      return this.c[key] = {
+        entry: new Date(),
+        data: data
+      };
+    };
+
+    return Cache;
+
+  })();
+
   Operation = (function() {
 
     function Operation(name, type, parent) {
-      var self;
+      var custom, self;
       if (!name) {
         error("name required");
       }
@@ -42,11 +94,12 @@
       if (parent[name]) {
         error("cannot add: '" + name + "' as it already exists");
       }
+      custom = !operations[name];
       type = type.toUpperCase();
       self = function() {
         var data, url, _ref;
         _ref = this.extractUrlData(type, arguments), url = _ref.url, data = _ref.data;
-        return this.client.ajax(type, url + custom, data);
+        return this.ajax(type, url + (custom ? name : ""), data);
       };
       self.isOperation = true;
       self.type = type;
@@ -59,29 +112,59 @@
 
   Resource = (function() {
 
-    function Resource(name, parent) {
-      this.name = name;
-      this.parent = parent;
-      if (!this.name) {
+    function Resource(data, parent) {
+      if (parent) {
+        this.constructChild(data, parent);
+      } else {
+        this.constructRoot(data);
+      }
+    }
+
+    Resource.prototype.constructRoot = function(data) {
+      if ($.type(data) === 'string') {
+        this.url = data;
+      } else if ($.isPlainObject(data)) {
+        $.extend(this.opts, data);
+      }
+      if (!this.url) {
+        this.url = this.opts.url;
+      }
+      this.urlNoId = this.url;
+      this.cache = new Cache(this);
+      this.numParents = 0;
+      this.root = this;
+      return this.name = 'ROOT';
+    };
+
+    Resource.prototype.constructChild = function(name, parent) {
+      if (!(parent instanceof Resource)) {
+        error("invalid parent");
+      }
+      if (!name) {
         error("name required");
       }
-      if (!this.parent) {
-        error("parent required");
+      if ($.type(name) !== 'string') {
+        error("name must be string");
       }
-      if (this.parent[this.name]) {
+      if (parent[this.name]) {
         error("cannot add: '" + name + "' as it already exists");
       }
-      if (this.parent instanceof RestClient) {
-        this.numParents = 0;
-        this.client = this.parent;
-      } else {
-        this.numParents = this.parent.numParents + 1;
-        this.client = this.parent.client;
-      }
-      this.urlNoId = this.parent.url + ("" + this.name + "/");
+      this.root = parent.root;
+      this.opts = this.root.opts;
+      this.name = name;
+      this.numParents = parent.numParents + 1;
+      this.urlNoId = parent.url + ("" + this.name + "/");
       this.url = this.urlNoId + (":ID_" + this.numParents + "/");
-      $.each(operations, $.proxy(this.add, this));
-    }
+      return $.each(operations, $.proxy(this.add, this));
+    };
+
+    Resource.prototype.opts = {
+      url: '',
+      cache: 0,
+      stringifyData: false,
+      username: null,
+      password: null
+    };
 
     Resource.prototype.add = function(name, type) {
       if (type) {
@@ -93,6 +176,7 @@
     };
 
     Resource.prototype.show = function(d) {
+      var _this = this;
       if (d == null) {
         d = 0;
       }
@@ -104,11 +188,12 @@
           return console.log(s(d + 1) + value.type + ": " + name);
         }
       });
-      return $.each(this, function(name, res) {
-        if (name !== "parent" && name !== "client" && res instanceof Resource) {
+      $.each(this, function(name, res) {
+        if (res !== "parent" && name !== "root" && res instanceof Resource) {
           return res.show(d + 1);
         }
       });
+      return null;
     };
 
     Resource.prototype.toString = function() {
@@ -147,34 +232,9 @@
       };
     };
 
-    return Resource;
-
-  })();
-
-  RestClient = (function(_super) {
-
-    __extends(RestClient, _super);
-
-    function RestClient(urlOrOpts) {
-      if ($.type(urlOrOpts) === 'string') {
-        this.url = urlOrOpts;
-      } else if ($.isPlainObject(urlOrOpts)) {
-        this.opts = urlOrOpts;
-        this.url = this.opts.url;
-      }
-      if (!this.url) {
-        this.url = '';
-      }
-      if (!this.url) {
-        this.url = '';
-      }
-      if (!this.opts) {
-        this.opts = {};
-      }
-    }
-
-    RestClient.prototype.ajax = function(type, url, data, headers) {
-      var encoded;
+    Resource.prototype.ajax = function(type, url, data, headers) {
+      var ajaxOpts, encoded, key, req,
+        _this = this;
       if (headers == null) {
         headers = {};
       }
@@ -185,32 +245,40 @@
         error("url missing");
       }
       if (this.opts.username && this.opts.password) {
-        if (!window.btoa) {
-          error("You need a polyfill for 'btoa' to use basic auth.");
-        }
-        encoded = window.btoa(this.opts.username + ":" + this.opts.password);
+        encoded = encode64(this.opts.username + ":" + this.opts.password);
         headers.Authorization = "Basic " + encoded;
       }
       if (data && this.opts.stringifyData) {
-        if (!window.JSON) {
-          error("You need a polyfill for 'JSON' to use stringify.");
-        }
-        data = window.JSON.stringify(data);
+        data = stringify(data);
       }
-      return $.ajax({
+      ajaxOpts = {
         url: url,
         type: type,
         headers: headers,
         data: data,
         processData: false,
         dataType: "json"
-      });
+      };
+      if (this.opts.cache) {
+        key = this.cache.key(ajaxOpts);
+        req = this.cache.get(key);
+        if (req) {
+          return req;
+        }
+      }
+      req = $.ajax(ajaxOpts);
+      if (this.opts.cache) {
+        req.complete(function() {
+          return _this.cache.put(key, req);
+        });
+      }
+      return req;
     };
 
-    return RestClient;
+    return Resource;
 
-  })(Resource);
+  })();
 
-  $.RestClient = RestClient;
+  $.RestClient = Resource;
 
 }).call(this);

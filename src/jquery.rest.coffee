@@ -11,42 +11,103 @@ operations =
   'delete' : 'DELETE'
 
 s = (n) ->
+
   t = ""; n *= 2;
-  t += " " while --n
+  t += " " while (n--)>0
   t
 
+encode64 = (s) ->
+  error "You need a polyfill for 'btoa' to use basic auth." unless window.btoa
+  window.btoa s
+
+stringify = (obj) ->
+  error "You need a polyfill for 'JSON' to use stringify." unless window.JSON
+  window.JSON.stringify obj
+
+#ajax cache with timeouts
+class Cache
+  constructor: (@parent) ->
+    @c = {}
+  valid: (date) ->
+    diff = new Date().getTime() - date.getTime()
+    return diff <= @parent.opts.cache*1000
+  key: (obj) ->
+    stringify obj
+  get: (key) ->
+    result = @c[key]
+    unless result
+      return 
+    if @valid result.entry
+      return result.data
+    @c[key] = null
+    return
+  put: (key, data) ->
+    @c[key] =
+      entry: new Date()
+      data: data
+
+
+#represents one operation Create,Read,...
 class Operation
   constructor: (name, type, parent) ->
     error "name required" unless name
     error "type required" unless type
     error "parent required" unless parent
     error "cannot add: '#{name}' as it already exists" if parent[name]
-
+    custom = !operations[name] 
     type = type.toUpperCase()
     self = ->
       {url, data} = @extractUrlData type, arguments
-      @client.ajax type, url+custom, data
+      @ajax type, url+(if custom then name else ""), data
     self.isOperation = true
     self.type = type
     return self
 
 #resource class - represents one set of crud ops
 class Resource
-  constructor: (@name, @parent) ->
-    error "name required" unless @name
-    error "parent required" unless @parent
-    error "cannot add: '#{name}' as it already exists" if @parent[@name]
 
-    if @parent instanceof RestClient
-      @numParents = 0
-      @client = @parent
+  constructor: (data, parent) ->
+    if parent
+      @constructChild data, parent
     else
-      @numParents = @parent.numParents + 1
-      @client = @parent.client
+      @constructRoot data
 
-    @urlNoId = @parent.url + "#{@name}/"
+  constructRoot: (data) ->
+    if $.type(data) is 'string'
+      @url = data
+    else if $.isPlainObject(data)
+      $.extend @opts, data
+    @url = @opts.url unless @url
+    @urlNoId = @url
+    @cache = new Cache @
+    @numParents = 0
+    @root = @
+    @name = 'ROOT'
+
+  constructChild: (name, parent) ->
+    error "invalid parent"  unless parent instanceof Resource
+    error "name required" unless name
+    error "name must be string" unless $.type(name) is 'string'
+    error "cannot add: '#{name}' as it already exists" if parent[@name]
+
+    @root = parent.root
+    @opts = @root.opts
+    @name = name
+
+    @numParents = parent.numParents + 1
+
+    @urlNoId = parent.url + "#{@name}/"
     @url = @urlNoId + ":ID_#{@numParents}/"
-    $.each operations, $.proxy @add, @    
+    #add all standard operations to each 
+    $.each operations, $.proxy @add, @   
+
+  #defaults
+  opts:
+    url: ''
+    cache: 0
+    stringifyData: false
+    username: null
+    password: null
 
   add: (name, type) ->
     if type
@@ -59,9 +120,10 @@ class Resource
     console.log(s(d)+@name+": "+@url) if @name
     $.each @, (name,value) ->
       console.log(s(d+1)+value.type+": " +name) if value.isOperation is true
-    $.each @, (name,res) ->
-      if name isnt "parent" and name isnt "client" and res instanceof Resource
+    $.each @, (name,res) =>
+      if res isnt "parent" and name isnt "root" and res instanceof Resource
         res.show(d+1)
+    null
 
   toString: -> @name
 
@@ -90,33 +152,18 @@ class Resource
 
     {url, data}
 
-
-class RestClient extends Resource
-  constructor: (urlOrOpts) ->
-    if $.type(urlOrOpts) is 'string'
-      @url = urlOrOpts
-    else if $.isPlainObject(urlOrOpts)
-      @opts = urlOrOpts
-      @url = @opts.url
-    @url = '' unless @url
-    @url = '' unless @url
-    @opts = {} unless @opts
-
-
   ajax: (type, url, data, headers = {})->
     error "type missing"  unless type
     error "url missing"  unless url
     # console.log type, url, data
     if @opts.username and @opts.password
-      error "You need a polyfill for 'btoa' to use basic auth." unless window.btoa
-      encoded = window.btoa @opts.username + ":" + @opts.password
+      encoded = encode64 @opts.username + ":" + @opts.password
       headers.Authorization = "Basic #{encoded}"
 
     if data and @opts.stringifyData
-      error "You need a polyfill for 'JSON' to use stringify." unless window.JSON
-      data = window.JSON.stringify data
+      data = stringify data
 
-    $.ajax {
+    ajaxOpts = {
       url
       type
       headers
@@ -124,5 +171,19 @@ class RestClient extends Resource
       processData: false
       dataType: "json"
     }
+
+    if @opts.cache
+      key = @cache.key ajaxOpts
+      req = @cache.get key
+      return req if req
+
+    req = $.ajax ajaxOpts
+
+    if @opts.cache
+      req.complete =>
+        @cache.put key, req
+
+    return req
+
 # Public API
-$.RestClient = RestClient
+$.RestClient = Resource
