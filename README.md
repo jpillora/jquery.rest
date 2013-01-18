@@ -45,26 +45,26 @@ First setup your page:
 Basic Example
 ``` html
 <script>
-  var client = new $.RestClient('/api/rest/');
+  var client = new $.RestClient('/rest/api/');
 
   client.add('foo');
   
   client.foo.read();
-  // GET /api/rest/foo/
+  // GET /rest/api/foo/
   client.foo.read("42");
-  // GET /api/rest/foo/42/
+  // GET /rest/api/foo/42/
 </script>
 ```
 
 Retrieving Results Example (Uses [jQuery's $.Deferred](http://api.jquery.com/category/deferred-object/))
 ``` html
 <script>
-  var client = new $.RestClient('/api/rest/');
+  var client = new $.RestClient('/rest/api/');
 
   client.add('foo');
   
   var request = client.foo.read();
-  // GET /api/rest/foo/
+  // GET /rest/api/foo/
   request.done(function (data){ 
     alert('I have data: ' + data);
   });
@@ -80,23 +80,23 @@ Nested Example
 ``` html
 <script>
 
-  var client = new $.RestClient('/api/rest/');
+  var client = new $.RestClient('/rest/api/');
 
   client.add('foo');
   client.foo.add('baz');
 
   client.foo.read();
-  // GET /api/rest/foo/
+  // GET /rest/api/foo/
   client.foo.read("42");
-  // GET /api/rest/foo/42/
+  // GET /rest/api/foo/42/
 
   client.foo.baz.read();
-  // GET /api/rest/foo/{ID Placeholder}/baz/
+  // GET /rest/api/foo/{ID Placeholder}/baz/
   // ERROR ! Invalid number of arguments
   client.foo.baz.read("42");
-  // GET /api/rest/foo/42/baz/
+  // GET /rest/api/foo/42/baz/
   client.foo.baz.read("42","21");
-  // GET /api/rest/foo/42/baz/21/
+  // GET /rest/api/foo/42/baz/21/
 
 </script>
 ```
@@ -106,23 +106,23 @@ Basic CRUD Operations Example
 ``` html
 <script>
 
-  var client = new $.RestClient('/api/rest/');
+  var client = new $.RestClient('/rest/api/');
 
   client.add('foo');
 
   // C
   client.foo.create({a:21,b:42});
-  // POST /api/rest/foo/ (with data a=21 and b=42)
+  // POST /rest/api/foo/ (with data a=21 and b=42)
   // Note: data can also be stringified to: {"a":21,"b":42} in this case, see options below
 
   // R
   client.foo.read();
-  // GET /api/rest/foo/
+  // GET /rest/api/foo/
   client.foo.read("42");
 
   // U
   client.foo.update("42", {my:"updates"});
-  // PUT /api/rest/42/   my=updates
+  // PUT /rest/api/42/   my=updates
 
   // D
   client.foo.delete("42");
@@ -135,7 +135,7 @@ Adding Custom Operations Example
 ``` html
 <script>
 
-  var client = new $.RestClient('/api/rest/');
+  var client = new $.RestClient('/rest/api/');
 
   client.add('foo');
   client.foo.add('bang', 'PATCH');
@@ -152,7 +152,7 @@ Basic Authentication Example
 ``` html
 <script>
   var client = new $.RestClient({
-    url: '/api/rest/',
+    url: '/rest/api/',
     username: 'admin',
     password: 'secr3t'
   });
@@ -160,7 +160,7 @@ Basic Authentication Example
   client.add('foo');
   
   client.foo.read();
-  // GET /api/rest/foo/
+  // GET /rest/api/foo/
   // With header "Authorization: Basic YWRtaW46c2VjcjN0"
 </script>
 ```
@@ -169,7 +169,7 @@ Cache Example
 ``` html
 <script>
   var client = new $.RestClient({
-    url: '/api/rest/',
+    url: '/rest/api/',
     cache: 5 //This will cache requests for 5 seconds then they will expire
   });
 

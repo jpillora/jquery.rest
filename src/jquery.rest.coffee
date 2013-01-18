@@ -88,7 +88,7 @@ class Resource
     error "invalid parent"  unless parent instanceof Resource
     error "name required" unless name
     error "name must be string" unless $.type(name) is 'string'
-    error "cannot add: '#{name}' as it already exists" if parent[@name]
+    error "cannot add: '#{name}' as it already exists" if parent[name]
 
     @root = parent.root
     @opts = @root.opts
@@ -99,7 +99,8 @@ class Resource
     @urlNoId = parent.url + "#{@name}/"
     @url = @urlNoId + ":ID_#{@numParents}/"
     #add all standard operations to each 
-    $.each operations, $.proxy @add, @   
+    $.each operations, $.proxy @add, @
+    @del = @delete
 
   #defaults
   opts:
@@ -119,7 +120,7 @@ class Resource
   show: (d=0)->
     console.log(s(d)+@name+": "+@url) if @name
     $.each @, (name,value) ->
-      console.log(s(d+1)+value.type+": " +name) if value.isOperation is true
+      console.log(s(d+1)+value.type+": " +name) if value.isOperation is true and name isnt 'del'
     $.each @, (name,res) =>
       if res isnt "parent" and name isnt "root" and res instanceof Resource
         res.show(d+1)
@@ -136,19 +137,24 @@ class Resource
       else if $.isPlainObject(arg) and data is null
         data = arg 
       else
-        error "Invalid parameter: #{arg} (#{$.type(arg)}). Must be strings and one optional plain object."
+        error "Invalid parameter: #{arg} (#{$.type(arg)})." + 
+              " Must be strings (IDs) and one optional plain object (data)."
 
     numIds = ids.length
 
-    if name isnt 'create' and numIds is @numParents + 1
-      url = @url
-    else if (name isnt 'update' and name isnt 'delete') and numIds is @numParents
-      url = @urlNoId
-    else
-      error "Invalid number of ID parameters provided (#{numIds})"
+    canUrl = name isnt 'create'
+    canUrlNoId = name isnt 'update' and name isnt 'delete'
+    
+    url = @url if canUrl and numIds is @numParents
+    url = @urlNoId if canUrlNoId and numIds is @numParents - 1
+    
+    unless url
+      msg = (@numParents - 1) if canUrlNoId
+      msg = ((if msg then msg+' or ' else '') + @numParents) if canUrl
+      error "Invalid number of ID parameters, required #{msg}, provided #{numIds}"
 
     for id, i in ids
-      url = url.replace new RegExp("\/:ID_#{i}\/"), "/#{id}/"
+      url = url.replace new RegExp("\/:ID_#{i+1}\/"), "/#{id}/"
 
     {url, data}
 

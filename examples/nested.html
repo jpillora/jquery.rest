@@ -1,0 +1,51 @@
+<html>
+<head>
+  <title>Example</title>
+</head>
+<body>
+
+  jquery.rest.js examples - see console.
+  <!-- jQuery -->
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+
+  <!-- jQuery rest -->
+  <script src="../dist/jquery.rest.js"></script>
+
+  <script>
+
+    //display ajax result
+    function result(obj) {
+      console.log(obj);
+    }
+
+    var client = new $.RestClient('/rest/api/');
+
+    client.add('foo');
+    client.add('bar');
+    client.foo.add('baz');
+
+    client.show();
+
+    client.foo.read();
+    // GET /rest/api/foo/
+    client.foo.read("42");
+    // GET /rest/api/foo/42/
+
+    try {
+      client.foo.baz.read();
+      // GET /rest/api/foo/{ID Placeholder}/baz/
+      // ERROR ! Invalid number of arguments
+    } catch(e) {
+      console.error(e);
+    }
+
+    client.foo.baz.read("42");
+    // GET /rest/api/foo/42/baz/
+    client.foo.baz.read("42","21");
+    // GET /rest/api/foo/42/baz/21/
+
+  </script>
+
+</body>
+</html>
+

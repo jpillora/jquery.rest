@@ -146,7 +146,7 @@
       if ($.type(name) !== 'string') {
         error("name must be string");
       }
-      if (parent[this.name]) {
+      if (parent[name]) {
         error("cannot add: '" + name + "' as it already exists");
       }
       this.root = parent.root;
@@ -155,7 +155,8 @@
       this.numParents = parent.numParents + 1;
       this.urlNoId = parent.url + ("" + this.name + "/");
       this.url = this.urlNoId + (":ID_" + this.numParents + "/");
-      return $.each(operations, $.proxy(this.add, this));
+      $.each(operations, $.proxy(this.add, this));
+      return this.del = this["delete"];
     };
 
     Resource.prototype.opts = {
@@ -184,7 +185,7 @@
         console.log(s(d) + this.name + ": " + this.url);
       }
       $.each(this, function(name, value) {
-        if (value.isOperation === true) {
+        if (value.isOperation === true && name !== 'del') {
           return console.log(s(d + 1) + value.type + ": " + name);
         }
       });
@@ -201,7 +202,7 @@
     };
 
     Resource.prototype.extractUrlData = function(name, args) {
-      var arg, data, i, id, ids, numIds, url, _i, _j, _len, _len1;
+      var arg, canUrl, canUrlNoId, data, i, id, ids, msg, numIds, url, _i, _j, _len, _len1;
       ids = [];
       data = null;
       for (_i = 0, _len = args.length; _i < _len; _i++) {
@@ -211,20 +212,30 @@
         } else if ($.isPlainObject(arg) && data === null) {
           data = arg;
         } else {
-          error("Invalid parameter: " + arg + " (" + ($.type(arg)) + "). Must be strings and one optional plain object.");
+          error(("Invalid parameter: " + arg + " (" + ($.type(arg)) + ").") + " Must be strings (IDs) and one optional plain object (data).");
         }
       }
       numIds = ids.length;
-      if (name !== 'create' && numIds === this.numParents + 1) {
+      canUrl = name !== 'create';
+      canUrlNoId = name !== 'update' && name !== 'delete';
+      if (canUrl && numIds === this.numParents) {
         url = this.url;
-      } else if ((name !== 'update' && name !== 'delete') && numIds === this.numParents) {
+      }
+      if (canUrlNoId && numIds === this.numParents - 1) {
         url = this.urlNoId;
-      } else {
-        error("Invalid number of ID parameters provided (" + numIds + ")");
+      }
+      if (!url) {
+        if (canUrlNoId) {
+          msg = this.numParents - 1;
+        }
+        if (canUrl) {
+          msg = (msg ? msg + ' or ' : '') + this.numParents;
+        }
+        error("Invalid number of ID parameters, required " + msg + ", provided " + numIds);
       }
       for (i = _j = 0, _len1 = ids.length; _j < _len1; i = ++_j) {
         id = ids[i];
-        url = url.replace(new RegExp("\/:ID_" + i + "\/"), "/" + id + "/");
+        url = url.replace(new RegExp("\/:ID_" + (i + 1) + "\/"), "/" + id + "/");
       }
       return {
         url: url,
