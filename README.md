@@ -157,38 +157,44 @@ Cache Example
 ``` javascript
 var client = new $.RestClient({
   url: '/rest/api/',
-  cache: 5 //This will cache requests for 5 seconds then they will expire
+  cache: 5 //This will cache requests for 5 seconds
 });
 
 client.add('foo');
 
 client.foo.read().done(function(data) {
   //'client.foo.read' is now cached for 5 seconds
-
-  client.foo.read().done(function(moredata) {
-    //moredata returns instantly from cache
-  });
-
 });
+
+// wait 3 seconds...
+
+client.foo.read().done(function(data) {
+  //data returns instantly from cache
+});
+
+// wait another 3 seconds (total 6 seconds)...
+
+client.foo.read().done(function(data) {
+  //'client.foo.read' cached result has expired
+  //data is once again retrieved from the server
+});
+
+
 ```
 
 Options
 ---
 
 The base url to use for all requests
-
 **url**: string (default `''` empty string)
 
-Whether to run all data given through JSON.stringify (polyfill required for IE<=8)
-
+Whether to run all data given through `JSON.stringify` (polyfill required for IE<=8)
 **stringifyData**: boolean (default `false`)
 
-When both username and password are provided. They will be base64 encoded (using `btoa`, pollyfill required not non-webkit)
-
+When both username and password are provided. They will be base64 encoded using `btoa` (pollyfill required not non-webkit)
 **username** and **password**: string (default `null`)
 
 jQuery's Ajax Options
-
 **processData**: boolean (default `true`)
 
 Todo
