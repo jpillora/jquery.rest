@@ -167,6 +167,7 @@
       url: '',
       cache: 0,
       stringifyData: false,
+      processData: true,
       username: null,
       password: null
     };
@@ -271,7 +272,7 @@
         type: type,
         headers: headers,
         data: data,
-        processData: false,
+        processData: this.opts.processData,
         dataType: "json"
       };
       if (this.opts.cache) {

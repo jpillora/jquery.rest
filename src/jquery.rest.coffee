@@ -107,6 +107,7 @@ class Resource
     url: ''
     cache: 0
     stringifyData: false
+    processData: true
     username: null
     password: null
 
@@ -174,7 +175,7 @@ class Resource
       type
       headers
       data
-      processData: false
+      processData: @opts.processData
       dataType: "json"
     }
 
