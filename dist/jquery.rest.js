@@ -5,7 +5,7 @@
 (function() {
   'use strict';
 
-  var Cache, Operation, Resource, defaultOpts, encode64, error, getNameData, inheritExtend, operations, s, stringify;
+  var Cache, Operation, Resource, defaultOpts, encode64, error, inheritExtend, operations, s, stringify;
 
   error = function(msg) {
     throw "ERROR: jquery.rest: " + msg;
@@ -49,27 +49,13 @@
     return $.extend(new F(), b);
   };
 
-  getNameData = function(data) {
-    var name;
-    if ($.isPlainObject(data)) {
-      name = data.name || data.url;
-    } else if ('string' === $.type(data)) {
-      name = data;
-      data = null;
-    } else {
-      error("Invalid data. Must be an object or string.");
-    }
-    return {
-      data: data,
-      name: name
-    };
-  };
-
   defaultOpts = {
     url: '',
     cache: 0,
+    cacheTypes: ['GET'],
     stringifyData: false,
     dataType: 'json',
+    disablePut: false,
     processData: true,
     crossDomain: false,
     timeout: null,
@@ -112,9 +98,14 @@
       };
     };
 
-    Cache.prototype.flush = function(key) {
-      if (key) {
-        return this.c[key] = null;
+    Cache.prototype.clear = function(regexp) {
+      var _this = this;
+      if (regexp) {
+        return $.each(this.c, function(k, v) {
+          if (k.match(regexp)) {
+            return delete _this.c[k];
+          }
+        });
       } else {
         return this.c = {};
       }
@@ -126,8 +117,9 @@
 
   Operation = (function() {
 
-    function Operation(name, type, parent) {
-      var ajax, custom;
+    function Operation(data) {
+      var custom, fn, name, parent, type;
+      name = data.name, type = data.type, parent = data.parent;
       if (!name) {
         error("name required");
       }
@@ -142,14 +134,19 @@
       }
       custom = !operations[name];
       type = type.toUpperCase();
-      ajax = function() {
-        var data, url, _ref;
-        _ref = this.extractUrlData(type, arguments), url = _ref.url, data = _ref.data;
-        return this.ajax(type, url + (custom ? name : ""), data);
+      fn = function() {
+        var r;
+        r = this.extractUrlData(type, arguments);
+        if (custom) {
+          r.url += data.url || name;
+        }
+        return this.ajax.call(fn, type, r.url, r.data);
       };
-      ajax.isOperation = true;
-      ajax.type = type;
-      return ajax;
+      fn.isOperation = true;
+      fn.type = type;
+      fn.root = parent.root;
+      fn.opts = inheritExtend(parent.opts, data);
+      return fn;
     }
 
     return Operation;
@@ -158,22 +155,41 @@
 
   Resource = (function() {
 
-    function Resource(data, parent) {
-      if (parent) {
-        this.constructChild(data, parent);
+    function Resource(data) {
+      if (data == null) {
+        data = {};
+      }
+      if (data.parent) {
+        this.constructChild(data);
       } else {
         this.constructRoot(data);
       }
     }
 
-    Resource.prototype.constructRoot = function(data) {
-      var name, _ref;
-      if (data == null) {
-        data = '';
+    Resource.prototype.add = function(data, type) {
+      if ('string' === $.type(data)) {
+        data = {
+          name: data
+        };
       }
-      _ref = getNameData(data), name = _ref.name, data = _ref.data;
-      this.url = name;
-      data = data || {};
+      if (!$.isPlainObject(data)) {
+        error("Invalid data. Must be an object or string.");
+      }
+      if (type) {
+        data.type = type;
+      }
+      data.parent = this;
+      return this[data.name] = data.type ? new Operation(data) : new Resource(data);
+    };
+
+    Resource.prototype.constructRoot = function(data) {
+      if (data == null) {
+        data = {};
+      }
+      if ('string' === $.type(data)) {
+        this.url = data;
+        data = {};
+      }
       this.opts = inheritExtend(defaultOpts, data);
       if (!this.url) {
         this.url = this.opts.url;
@@ -182,42 +198,31 @@
       this.cache = new Cache(this);
       this.numParents = 0;
       this.root = this;
-      return this.name = 'ROOT';
+      return this.name = data.name || 'ROOT';
     };
 
-    Resource.prototype.constructChild = function(data, parent) {
-      var name, _ref;
-      if (!(parent instanceof Resource)) {
-        error("Invalid parent");
+    Resource.prototype.constructChild = function(data) {
+      this.parent = data.parent, this.name = data.name;
+      if (!(this.parent instanceof Resource)) {
+        this.error("Invalid parent");
       }
-      _ref = getNameData(data), name = _ref.name, data = _ref.data;
-      if (!name) {
-        error("name required");
+      if (!this.name) {
+        this.error("name required");
       }
-      data = data || {};
-      if (parent[name]) {
-        error("Cannot add Resource: '" + name + "' already exists");
+      if (this.parent[this.name]) {
+        this.error("'" + name + "' already exists");
       }
-      this.parent = parent;
-      this.root = parent.root;
-      this.opts = inheritExtend(parent.opts, data);
-      this.name = name;
-      this.numParents = parent.numParents + 1;
-      this.urlNoId = parent.url + ("" + this.name + "/");
+      this.root = this.parent.root;
+      this.opts = inheritExtend(this.parent.opts, data);
+      this.numParents = this.parent.numParents + 1;
+      this.urlNoId = this.parent.url + ("" + (data.url || this.name) + "/");
       this.url = this.urlNoId + (":ID_" + this.numParents + "/");
       $.each(operations, $.proxy(this.add, this));
       return this.del = this["delete"];
     };
 
-    Resource.prototype.add = function(data, type) {
-      var name, _ref;
-      _ref = getNameData(data), name = _ref.name, data = _ref.data;
-      if (type) {
-        this[name] = new Operation(name, type, this);
-      } else {
-        this[name] = new Resource(data || name, this);
-      }
-      return null;
+    Resource.prototype.error = function(msg) {
+      return error("Cannot add Resource: " + msg);
     };
 
     Resource.prototype.show = function(d) {
@@ -292,7 +297,7 @@
     };
 
     Resource.prototype.ajax = function(type, url, data, headers) {
-      var ajaxOpts, encoded, key, req,
+      var ajaxOpts, encoded, key, req, useCache,
         _this = this;
       if (headers == null) {
         headers = {};
@@ -310,6 +315,9 @@
       if (data && this.opts.stringifyData) {
         data = stringify(data);
       }
+      if (type === 'PUT' && this.opts.disablePut) {
+        type = 'POST';
+      }
       ajaxOpts = {
         url: url,
         type: type,
@@ -320,7 +328,8 @@
         processData: this.opts.processData,
         dataType: this.opts.dataType
       };
-      if (this.opts.cache) {
+      useCache = this.opts.cache && this.opts.cacheTypes.indexOf(type) >= 0;
+      if (useCache) {
         key = this.root.cache.key(ajaxOpts);
         req = this.root.cache.get(key);
         if (req) {
@@ -328,7 +337,7 @@
         }
       }
       req = $.ajax(ajaxOpts);
-      if (this.opts.cache) {
+      if (useCache) {
         req.complete(function() {
           return _this.root.cache.put(key, req);
         });

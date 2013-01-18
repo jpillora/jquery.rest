@@ -29,22 +29,14 @@ inheritExtend = (a, b) ->
   F.prototype = a
   $.extend new F(), b
 
-getNameData = (data) ->
-  if $.isPlainObject data
-    name = data.name or data.url
-  else if 'string' is $.type data
-    name = data
-    data = null
-  else
-    error "Invalid data. Must be an object or string."
-  { data, name }
-
 #defaults
 defaultOpts =
   url: ''
   cache: 0
+  cacheTypes: ['GET']
   stringifyData: false
   dataType: 'json'
+  disablePut: false
   processData: true
   crossDomain: false
   timeout: null
@@ -71,72 +63,82 @@ class Cache
     @c[key] =
       entry: new Date()
       data: data
-  flush: (key) ->
-    if key then @c[key] = null else @c = {}
+  clear: (regexp) ->
+    if regexp
+      $.each @c, (k,v) =>
+        delete @c[k] if k.match regexp
+    else
+      @c = {}
 
 #represents one operation Create,Read,...
 class Operation
-  constructor: (name, type, parent) ->
+  constructor: (data) ->
+    {name, type, parent} = data
     error "name required" unless name
     error "type required" unless type
     error "parent required" unless parent
     error "Cannot add Operation: '#{name}' already exists" if parent[name]
+
     custom = !operations[name] 
     type = type.toUpperCase()
-    ajax = ->
-      {url, data} = @extractUrlData type, arguments
-      @ajax type, url+(if custom then name else ""), data
-    ajax.isOperation = true
-    ajax.type = type
-    return ajax
+
+    fn = ->
+      r = @extractUrlData type, arguments
+      r.url += data.url or name if custom
+      @ajax.call fn, type, r.url, r.data
+
+    fn.isOperation = true
+    fn.type = type
+    fn.root = parent.root
+    fn.opts = inheritExtend parent.opts, data
+
+    return fn
 
 #resource class - represents one set of crud ops
 class Resource
 
-  constructor: (data, parent) ->
-    if parent
-      @constructChild data, parent
+  constructor: (data = {}) ->
+    if data.parent
+      @constructChild data
     else
       @constructRoot data
 
-  constructRoot: (data = '') ->
-    {name, data} = getNameData data
-    @url = name
-    data = data or {}
+  add: (data, type) ->
+    data = {name: data} if 'string' is $.type data
+    error "Invalid data. Must be an object or string." unless $.isPlainObject data
+    data.type = type if type
+    data.parent = @
+    @[data.name] = if data.type then new Operation(data) else new Resource(data) 
+
+  constructRoot: (data = {}) ->
+    if 'string' is $.type data
+      @url = data
+      data = {}
     @opts = inheritExtend defaultOpts, data
     @url = @opts.url unless @url
     @urlNoId = @url
     @cache = new Cache @
     @numParents = 0
     @root = @
-    @name = 'ROOT'
+    @name = data.name || 'ROOT'
 
-  constructChild: (data, parent) ->
-    error "Invalid parent"  unless parent instanceof Resource
-    {name, data} = getNameData data
-    error "name required" unless name
-    data = data or {}
-    error "Cannot add Resource: '#{name}' already exists" if parent[name]
+  constructChild: (data) ->
+    {@parent, @name} = data
+    @error "Invalid parent"  unless @parent instanceof Resource
+    @error "name required" unless @name
+    @error "'#{name}' already exists" if @parent[@name]
 
-    @parent = parent
-    @root = parent.root
-    @opts = inheritExtend parent.opts, data
-    @name = name
-    @numParents = parent.numParents + 1
-    @urlNoId = parent.url + "#{@name}/"
+    @root = @parent.root
+    @opts = inheritExtend @parent.opts, data
+    @numParents = @parent.numParents + 1
+    @urlNoId = @parent.url + "#{data.url || @name}/"
     @url = @urlNoId + ":ID_#{@numParents}/"
     #add all standard CRUD operations 
     $.each operations, $.proxy @add, @
     @del = @delete
 
-  add: (data, type) ->
-    {name, data} = getNameData data
-
-    if type
-      @[name] = new Operation name, type, @
-    else
-      @[name] = new Resource data or name, @
-    null
+  error: (msg) ->
+    error "Cannot add Resource: " + msg
   
   show: (d=0)->
     error "Recurrsion Fail" if d > 15
@@ -192,6 +194,9 @@ class Resource
     if data and @opts.stringifyData
       data = stringify data
 
+    if type is 'PUT' and @opts.disablePut
+      type = 'POST'
+
     ajaxOpts = {
       url
       type
@@ -203,14 +208,16 @@ class Resource
       dataType: @opts.dataType
     }
 
-    if @opts.cache
+    useCache = @opts.cache and @opts.cacheTypes.indexOf(type) >= 0
+
+    if useCache
       key = @root.cache.key ajaxOpts
       req = @root.cache.get key
       return req if req
 
     req = $.ajax ajaxOpts
 
-    if @opts.cache
+    if useCache
       req.complete =>
         @root.cache.put key, req
 
