@@ -149,10 +149,11 @@ class Resource
     canUrl = name isnt 'create'
     canUrlNoId = name isnt 'update' and name isnt 'delete'
     
+    url = null
     url = @url if canUrl and numIds is @numParents
     url = @urlNoId if canUrlNoId and numIds is @numParents - 1
     
-    unless url
+    if url is null
       msg = (@numParents - 1) if canUrlNoId
       msg = ((if msg then msg+' or ' else '') + @numParents) if canUrl
       error "Invalid number of ID parameters, required #{msg}, provided #{numIds}"

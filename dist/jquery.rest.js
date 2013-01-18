@@ -226,13 +226,14 @@
       numIds = ids.length;
       canUrl = name !== 'create';
       canUrlNoId = name !== 'update' && name !== 'delete';
+      url = null;
       if (canUrl && numIds === this.numParents) {
         url = this.url;
       }
       if (canUrlNoId && numIds === this.numParents - 1) {
         url = this.urlNoId;
       }
-      if (!url) {
+      if (url === null) {
         if (canUrlNoId) {
           msg = this.numParents - 1;
         }
