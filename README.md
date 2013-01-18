@@ -211,7 +211,7 @@ client.bar.create({a:5});
 ```
 
 Show API Example
-```
+``` javascript
 var client = new $.RestClient('/rest/api/');
 
 client.add('foo');
@@ -237,6 +237,14 @@ client.show();
 //     GET: read 
 //     PUT: update 
 //     DELETE: delete 
+
+```
+
+Global/Singleton Example
+``` javascript
+
+$.client = new $.RestClient('/rest/api/');
+$.client.add('foo');
 
 ```
 
@@ -271,7 +279,7 @@ When both username and password are provided. They will be base64 encoded using 
 **timeout**: number (default browser defined)
 
 
-*Note: Would you like more options ? Open up a New Feature Issue above.*
+*Note: Want more options ? Open up a New Feature Issue above.*
 
 Conceptual Overview
 ---
