@@ -186,16 +186,31 @@ Options
 ---
 
 The base url to use for all requests
+
 **url**: string (default `''` empty string)
 
+
+
 Whether to run all data given through `JSON.stringify` (polyfill required for IE<=8)
+
 **stringifyData**: boolean (default `false`)
 
+
+
 When both username and password are provided. They will be base64 encoded using `btoa` (pollyfill required not non-webkit)
+
 **username** and **password**: string (default `null`)
 
-jQuery's Ajax Options
+[jQuery's Ajax Options](http://api.jquery.com/jQuery.ajax/)
+
+**dataType**: string (default `'json'`)
+
 **processData**: boolean (default `true`)
+
+**crossDomain**: boolean (default `false`)
+
+**timeout**: number (default browser defined)
+
 
 Todo
 ---

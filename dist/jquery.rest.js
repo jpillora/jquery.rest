@@ -167,7 +167,10 @@
       url: '',
       cache: 0,
       stringifyData: false,
+      dataType: 'json',
       processData: true,
+      crossDomain: false,
+      timeout: null,
       username: null,
       password: null
     };
@@ -272,8 +275,10 @@
         type: type,
         headers: headers,
         data: data,
+        timeout: this.opts.timeout,
+        crossDomain: this.opts.crossDomain,
         processData: this.opts.processData,
-        dataType: "json"
+        dataType: this.opts.dataType
       };
       if (this.opts.cache) {
         key = this.cache.key(ajaxOpts);

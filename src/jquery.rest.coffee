@@ -107,7 +107,10 @@ class Resource
     url: ''
     cache: 0
     stringifyData: false
+    dataType: 'json'
     processData: true
+    crossDomain: false
+    timeout: null
     username: null
     password: null
 
@@ -175,8 +178,10 @@ class Resource
       type
       headers
       data
+      timeout: @opts.timeout
+      crossDomain: @opts.crossDomain
       processData: @opts.processData
-      dataType: "json"
+      dataType: @opts.dataType
     }
 
     if @opts.cache
