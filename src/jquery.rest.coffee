@@ -22,7 +22,7 @@ class Operation
     error "parent required" unless parent
     error "cannot add: '#{name}' as it already exists" if parent[name]
 
-    custom = if operations[name] then "" else name
+    type = type.toUpperCase()
     self = ->
       {url, data} = @extractUrlData type, arguments
       @client.ajax type, url+custom, data
@@ -35,8 +35,7 @@ class Resource
   constructor: (@name, @parent) ->
     error "name required" unless @name
     error "parent required" unless @parent
-    if @parent[@name]
-      error "cannot add: '#{name}' as it already exists"
+    error "cannot add: '#{name}' as it already exists" if @parent[@name]
 
     if @parent instanceof RestClient
       @numParents = 0

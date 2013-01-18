@@ -33,7 +33,7 @@
   Operation = (function() {
 
     function Operation(name, type, parent) {
-      var custom, self;
+      var self;
       if (!name) {
         error("name required");
       }
@@ -46,7 +46,7 @@
       if (parent[name]) {
         error("cannot add: '" + name + "' as it already exists");
       }
-      custom = operations[name] ? "" : name;
+      type = type.toUpperCase();
       self = function() {
         var data, url, _ref;
         _ref = this.extractUrlData(type, arguments), url = _ref.url, data = _ref.data;
