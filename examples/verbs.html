@@ -1,0 +1,50 @@
+<html>
+<head>
+  <title>Example</title>
+</head>
+<body>
+
+  jquery.rest.js examples - see console.
+  <!-- jQuery -->
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+
+  <!-- jQuery rest -->
+  <script src="../dist/jquery.rest.js"></script>
+
+  <script>
+
+    $.RestClient.defaults.verbs = {};
+
+    var client = new $.RestClient();
+
+    client.add({
+      name: 'foo',
+      verbs: {
+        snap: 'OPTIONS'
+      }
+    });
+
+    client.foo.add({
+      name: 'bar',
+      verbs: {
+        crackle: 'PATCH'
+      }
+    });
+
+    client.foo.bar.add({
+      name: 'baz',
+      verbs: {
+        pop: 'GET'
+      }
+    });
+
+    client.show();
+
+
+    client.foo.bar.baz.snap(1,2)
+
+  </script>
+
+</body>
+</html>
+

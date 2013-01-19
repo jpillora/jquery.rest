@@ -4,12 +4,6 @@
 error = (msg) ->
   throw "ERROR: jquery.rest: #{msg}"
 
-operations =
-  'create' : 'POST'
-  'read'   : 'GET'
-  'update' : 'PUT'
-  'delete' : 'DELETE'
-
 s = (n) ->
 
   t = ""; n *= 2;
@@ -27,21 +21,23 @@ stringify = (obj) ->
 inheritExtend = (a, b) ->
   F = () ->
   F.prototype = a
-  $.extend new F(), b
+  $.extend true, new F(), b
 
 #defaults
 defaultOpts =
   url: ''
   cache: 0
-  cacheTypes: ['GET']
+  cachableTypes: ['GET']
   stringifyData: false
-  dataType: 'json'
-  disablePut: false
-  processData: true
-  crossDomain: false
-  timeout: null
-  username: null
   password: null
+  username: null
+  verbs:
+    'create' : 'POST'
+    'read'   : 'GET'
+    'update' : 'PUT'
+    'delete' : 'DELETE'
+  ajax:
+    dataType: 'json'
 
 #ajax cache with timeouts
 class Cache
@@ -70,29 +66,30 @@ class Cache
     else
       @c = {}
 
-#represents one operation Create,Read,...
-class Operation
+#represents one verb Create,Read,...
+class Verb
   constructor: (data) ->
-    {name, type, parent} = data
-    error "name required" unless name
+    {@name, type, @parent, @url} = data
+    error "name required" unless @name
     error "type required" unless type
-    error "parent required" unless parent
-    error "Cannot add Operation: '#{name}' already exists" if parent[name]
+    error "parent required" unless @parent
+    error "Cannot add Verb: '#{name}' already exists" if @parent[@name]
 
-    custom = !operations[name] 
-    type = type.toUpperCase()
+    @type = type.toUpperCase()
+    @opts = inheritExtend @parent.opts, data
+    @root = @parent.root
+    @custom = !defaultOpts.verbs[@name]
+    @call = $.proxy @call, @
+    @call.instance = @
 
-    fn = ->
-      r = @extractUrlData type, arguments
-      r.url += data.url or name if custom
-      @ajax.call fn, type, r.url, r.data
+  call: ->
+    #will execute in the context of the parent resource
+    r = @parent.extractUrlData @type, arguments
+    r.url += @url or @name if @custom
+    @parent.ajax.call @, @type, r.url, r.data
 
-    fn.isOperation = true
-    fn.type = type
-    fn.root = parent.root
-    fn.opts = inheritExtend parent.opts, data
-
-    return fn
+  show: (d) ->
+    console.log s(d) + @name + ": " + @type
 
 #resource class - represents one set of crud ops
 class Resource
@@ -102,13 +99,6 @@ class Resource
       @constructChild data
     else
       @constructRoot data
-
-  add: (data, type) ->
-    data = {name: data} if 'string' is $.type data
-    error "Invalid data. Must be an object or string." unless $.isPlainObject data
-    data.type = type if type
-    data.parent = @
-    @[data.name] = if data.type then new Operation(data) else new Resource(data) 
 
   constructRoot: (data = {}) ->
     if 'string' is $.type data
@@ -133,9 +123,24 @@ class Resource
     @numParents = @parent.numParents + 1
     @urlNoId = @parent.url + "#{data.url || @name}/"
     @url = @urlNoId + ":ID_#{@numParents}/"
-    #add all standard CRUD operations 
-    $.each operations, $.proxy @add, @
-    @del = @delete
+    #add all verbs defined for this resource 
+    $.each @.opts.verbs, $.proxy @addVerb, @
+    @del = @delete if @delete
+
+
+  add: (data) ->
+    data = {name: data} if 'string' is $.type data
+    error "Invalid data. Must be an object or string." unless $.isPlainObject data
+    data.parent = @
+    @[data.name] = new Resource data 
+
+  addVerb: (data, type) ->
+    return if type is null
+    data = {name: data} if 'string' is $.type data
+    error "Invalid data. Must be an object or string." unless $.isPlainObject data
+    data.type = type if type
+    data.parent = @
+    @[data.name] = new Verb(data).call
 
   error: (msg) ->
     error "Cannot add Resource: " + msg
@@ -143,26 +148,28 @@ class Resource
   show: (d=0)->
     error "Recurrsion Fail" if d > 15
     console.log(s(d)+@name+": "+@url) if @name
-    $.each @, (name,value) ->
-      console.log(s(d+1)+value.type+": " +name) if value.isOperation is true and name isnt 'del'
+    $.each @, (name, fn) ->
+      fn.instance.show(d+1) if fn.instance instanceof Verb and name isnt 'del'
     $.each @, (name,res) =>
       if name isnt "parent" and name isnt "root" and res instanceof Resource
         res.show(d+1)
     null
 
-  toString: -> @name
+  toString: ->
+    @name
 
   extractUrlData: (name, args) ->
     ids = []
     data = null
     for arg in args
-      if $.type(arg) is 'string'
+      t = $.type(arg)
+      if t is 'string' or t is 'number'
         ids.push(arg)
       else if $.isPlainObject(arg) and data is null
         data = arg 
       else
-        error "Invalid parameter: #{arg} (#{$.type(arg)})." + 
-              " Must be strings (IDs) and one optional plain object (data)."
+        error "Invalid parameter: #{arg} (#{t})." + 
+              " Must be strings or ints (IDs) followed by one optional plain object (data)."
 
     numIds = ids.length
 
@@ -194,21 +201,12 @@ class Resource
     if data and @opts.stringifyData
       data = stringify data
 
-    if type is 'PUT' and @opts.disablePut
-      type = 'POST'
+    ajaxOpts = { url, type, headers }
+    ajaxOpts.data = data if data
+    #add this verb's/resource's defaults
+    ajaxOpts = $.extend true, {}, @opts.ajax, ajaxOpts 
 
-    ajaxOpts = {
-      url
-      type
-      headers
-      data
-      timeout: @opts.timeout
-      crossDomain: @opts.crossDomain
-      processData: @opts.processData
-      dataType: @opts.dataType
-    }
-
-    useCache = @opts.cache and @opts.cacheTypes.indexOf(type) >= 0
+    useCache = @opts.cache and $.inArray(type, @opts.cachableTypes) >= 0
 
     if useCache
       key = @root.cache.key ajaxOpts
@@ -224,4 +222,6 @@ class Resource
     return req
 
 # Public API
+Resource.defaults = defaultOpts
+
 $.RestClient = Resource

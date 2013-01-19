@@ -1,17 +1,10 @@
 (function() {
   'use strict';
 
-  var Cache, Operation, Resource, defaultOpts, encode64, error, inheritExtend, operations, s, stringify;
+  var Cache, Resource, Verb, defaultOpts, encode64, error, inheritExtend, s, stringify;
 
   error = function(msg) {
     throw "ERROR: jquery.rest: " + msg;
-  };
-
-  operations = {
-    'create': 'POST',
-    'read': 'GET',
-    'update': 'PUT',
-    'delete': 'DELETE'
   };
 
   s = function(n) {
@@ -42,21 +35,25 @@
     var F;
     F = function() {};
     F.prototype = a;
-    return $.extend(new F(), b);
+    return $.extend(true, new F(), b);
   };
 
   defaultOpts = {
     url: '',
     cache: 0,
-    cacheTypes: ['GET'],
+    cachableTypes: ['GET'],
     stringifyData: false,
-    dataType: 'json',
-    disablePut: false,
-    processData: true,
-    crossDomain: false,
-    timeout: null,
+    password: null,
     username: null,
-    password: null
+    verbs: {
+      'create': 'POST',
+      'read': 'GET',
+      'update': 'PUT',
+      'delete': 'DELETE'
+    },
+    ajax: {
+      dataType: 'json'
+    }
   };
 
   Cache = (function() {
@@ -111,41 +108,45 @@
 
   })();
 
-  Operation = (function() {
+  Verb = (function() {
 
-    function Operation(data) {
-      var custom, fn, name, parent, type;
-      name = data.name, type = data.type, parent = data.parent;
-      if (!name) {
+    function Verb(data) {
+      var type;
+      this.name = data.name, type = data.type, this.parent = data.parent, this.url = data.url;
+      if (!this.name) {
         error("name required");
       }
       if (!type) {
         error("type required");
       }
-      if (!parent) {
+      if (!this.parent) {
         error("parent required");
       }
-      if (parent[name]) {
-        error("Cannot add Operation: '" + name + "' already exists");
+      if (this.parent[this.name]) {
+        error("Cannot add Verb: '" + name + "' already exists");
       }
-      custom = !operations[name];
-      type = type.toUpperCase();
-      fn = function() {
-        var r;
-        r = this.extractUrlData(type, arguments);
-        if (custom) {
-          r.url += data.url || name;
-        }
-        return this.ajax.call(fn, type, r.url, r.data);
-      };
-      fn.isOperation = true;
-      fn.type = type;
-      fn.root = parent.root;
-      fn.opts = inheritExtend(parent.opts, data);
-      return fn;
+      this.type = type.toUpperCase();
+      this.opts = inheritExtend(this.parent.opts, data);
+      this.root = this.parent.root;
+      this.custom = !defaultOpts.verbs[this.name];
+      this.call = $.proxy(this.call, this);
+      this.call.instance = this;
     }
 
-    return Operation;
+    Verb.prototype.call = function() {
+      var r;
+      r = this.parent.extractUrlData(this.type, arguments);
+      if (this.custom) {
+        r.url += this.url || this.name;
+      }
+      return this.parent.ajax.call(this, this.type, r.url, r.data);
+    };
+
+    Verb.prototype.show = function(d) {
+      return console.log(s(d) + this.name + ": " + this.type);
+    };
+
+    return Verb;
 
   })();
 
@@ -161,22 +162,6 @@
         this.constructRoot(data);
       }
     }
-
-    Resource.prototype.add = function(data, type) {
-      if ('string' === $.type(data)) {
-        data = {
-          name: data
-        };
-      }
-      if (!$.isPlainObject(data)) {
-        error("Invalid data. Must be an object or string.");
-      }
-      if (type) {
-        data.type = type;
-      }
-      data.parent = this;
-      return this[data.name] = data.type ? new Operation(data) : new Resource(data);
-    };
 
     Resource.prototype.constructRoot = function(data) {
       if (data == null) {
@@ -213,8 +198,42 @@
       this.numParents = this.parent.numParents + 1;
       this.urlNoId = this.parent.url + ("" + (data.url || this.name) + "/");
       this.url = this.urlNoId + (":ID_" + this.numParents + "/");
-      $.each(operations, $.proxy(this.add, this));
-      return this.del = this["delete"];
+      $.each(this.opts.verbs, $.proxy(this.addVerb, this));
+      if (this["delete"]) {
+        return this.del = this["delete"];
+      }
+    };
+
+    Resource.prototype.add = function(data) {
+      if ('string' === $.type(data)) {
+        data = {
+          name: data
+        };
+      }
+      if (!$.isPlainObject(data)) {
+        error("Invalid data. Must be an object or string.");
+      }
+      data.parent = this;
+      return this[data.name] = new Resource(data);
+    };
+
+    Resource.prototype.addVerb = function(data, type) {
+      if (type === null) {
+        return;
+      }
+      if ('string' === $.type(data)) {
+        data = {
+          name: data
+        };
+      }
+      if (!$.isPlainObject(data)) {
+        error("Invalid data. Must be an object or string.");
+      }
+      if (type) {
+        data.type = type;
+      }
+      data.parent = this;
+      return this[data.name] = new Verb(data).call;
     };
 
     Resource.prototype.error = function(msg) {
@@ -232,9 +251,9 @@
       if (this.name) {
         console.log(s(d) + this.name + ": " + this.url);
       }
-      $.each(this, function(name, value) {
-        if (value.isOperation === true && name !== 'del') {
-          return console.log(s(d + 1) + value.type + ": " + name);
+      $.each(this, function(name, fn) {
+        if (fn.instance instanceof Verb && name !== 'del') {
+          return fn.instance.show(d + 1);
         }
       });
       $.each(this, function(name, res) {
@@ -250,17 +269,18 @@
     };
 
     Resource.prototype.extractUrlData = function(name, args) {
-      var arg, canUrl, canUrlNoId, data, i, id, ids, msg, numIds, url, _i, _j, _len, _len1;
+      var arg, canUrl, canUrlNoId, data, i, id, ids, msg, numIds, t, url, _i, _j, _len, _len1;
       ids = [];
       data = null;
       for (_i = 0, _len = args.length; _i < _len; _i++) {
         arg = args[_i];
-        if ($.type(arg) === 'string') {
+        t = $.type(arg);
+        if (t === 'string' || t === 'number') {
           ids.push(arg);
         } else if ($.isPlainObject(arg) && data === null) {
           data = arg;
         } else {
-          error(("Invalid parameter: " + arg + " (" + ($.type(arg)) + ").") + " Must be strings (IDs) and one optional plain object (data).");
+          error(("Invalid parameter: " + arg + " (" + t + ").") + " Must be strings or ints (IDs) followed by one optional plain object (data).");
         }
       }
       numIds = ids.length;
@@ -311,20 +331,16 @@
       if (data && this.opts.stringifyData) {
         data = stringify(data);
       }
-      if (type === 'PUT' && this.opts.disablePut) {
-        type = 'POST';
-      }
       ajaxOpts = {
         url: url,
         type: type,
-        headers: headers,
-        data: data,
-        timeout: this.opts.timeout,
-        crossDomain: this.opts.crossDomain,
-        processData: this.opts.processData,
-        dataType: this.opts.dataType
+        headers: headers
       };
-      useCache = this.opts.cache && this.opts.cacheTypes.indexOf(type) >= 0;
+      if (data) {
+        ajaxOpts.data = data;
+      }
+      ajaxOpts = $.extend(true, {}, this.opts.ajax, ajaxOpts);
+      useCache = this.opts.cache && $.inArray(type, this.opts.cachableTypes) >= 0;
       if (useCache) {
         key = this.root.cache.key(ajaxOpts);
         req = this.root.cache.get(key);
@@ -344,6 +360,8 @@
     return Resource;
 
   })();
+
+  Resource.defaults = defaultOpts;
 
   $.RestClient = Resource;
 
