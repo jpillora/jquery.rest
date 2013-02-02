@@ -90,7 +90,7 @@ client.foo.read(42);
 
 client.foo.baz.read();
 // GET /rest/api/foo/???/baz/???/
-// ERROR ! Invalid number of ID arguments, required 1 or 2, provided 0
+// !ERROR! Invalid number of ID arguments, required 1 or 2, provided 0
 client.foo.baz.read(42);
 // GET /rest/api/foo/42/baz/
 client.foo.baz.read(42,21);
@@ -115,6 +115,7 @@ client.foo.create({a:21,b:42});
 client.foo.read();
 // GET /rest/api/foo/
 client.foo.read(42);
+// GET /rest/api/foo/42/
 
 // U
 client.foo.update(42, {my:"updates"});
@@ -123,6 +124,7 @@ client.foo.update(42, {my:"updates"});
 // D
 client.foo.delete(42);
 client.foo.del(42); // if JSLint is complaining...
+// DELETE /rest/api/foo/42/
 ```
 
 ##### Adding Custom Verbs
@@ -267,7 +269,7 @@ Newly created nested resources iterate through their `options.verbs` and addVerb
 
 Note: The url of each of these verbs is set to `""`.
 
-See default `options.verbs` [here](https://github.com/jpillora/jquery.rest/blob/gh-pages/src/jquery.rest.coffee#L26).
+See default `options.verbs` [here](https://github.com/jpillora/jquery.rest/blob/gh-pages/src/jquery.rest.coffee#L39).
 
 #### `client`.addVerb( `name`, `method`, [ `options` ] )
 
@@ -280,7 +282,7 @@ Options
 
 The `options` object is a plain JavaScript option that may only contain the properties listed below.
 
-See defaults [here](https://github.com/jpillora/jquery.rest/blob/gh-pages/src/jquery.rest.coffee#L26)
+See defaults [here](https://github.com/jpillora/jquery.rest/blob/gh-pages/src/jquery.rest.coffee#L32)
 
 *Important*: All classes inherit their parent's options !
 
