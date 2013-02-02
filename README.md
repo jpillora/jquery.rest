@@ -1,6 +1,6 @@
 jQuery REST Client
 =====
-v0.0.2
+v0.0.3
 
 Summary
 ---
@@ -354,6 +354,10 @@ Issues and pull-requests welcome. To build: `cd *dir*` then `npm install` then `
 
 Change Log
 ---
+
+v0.0.3
+
+* Added into the jQuery Plugin Repo
 
 v0.0.2
 
