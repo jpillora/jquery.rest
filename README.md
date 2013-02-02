@@ -134,9 +134,9 @@ var client = new $.RestClient('/rest/api/');
 client.add('foo');
 client.foo.addVerb('bang', 'PATCH');
 
-client.foo.patch({my:"data"});
+client.foo.bang({my:"data"});
 //PATCH /foo/bang/   my=data
-client.foo.patch(42,{my:"data"});
+client.foo.bang(42,{my:"data"});
 //PATCH /foo/42/bang/   my=data
 ```
 
@@ -263,7 +263,7 @@ Note: This API is subject to change.
 
 #### new $.RestClient( ... )
 
-Instaniates a new resource:
+Instaniates and returns a new `client`:
 
 * `options` is an options object.
 * `url` is a string representing the base url for all resources.
@@ -276,6 +276,9 @@ Instaniates a new nested resource on `client`:
 * `name` is a string representing the name for this resource.
 
 Newly created nested resources iterate through their `options.verbs` and addVerb on each (Note: the URL will always be blank for these verbs, essentially using the `client`s url, though with differing HTTP method types).
+
+See default `options.verbs` [here](https://github.com/jpillora/jquery.rest/blob/gh-pages/src/jquery.rest.coffee#L26).
+
 
 #### `client`.addVerb( ... )
 
