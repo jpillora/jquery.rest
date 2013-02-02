@@ -13,13 +13,11 @@
 
   <script>
 
-    var client = new $.RestClient({
-      url: '/rest/api/',
+    var client = new $.RestClient('/rest/api/', {
       stringifyData: true
     });
 
-    client.add({
-      name: 'foo',
+    client.add('foo',{
       stringifyData: false
     });
 
@@ -27,9 +25,9 @@
 
     client.show();
 
-    //foo overrode 'stringifyData'
+    //foo overrides 'stringifyData': false
     client.foo.create({data:42});
-    //bar inherits 'stringifyData'
+    //bar inherits 'stringifyData': true
     client.bar.create({data:42});
 
   </script>

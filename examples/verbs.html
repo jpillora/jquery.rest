@@ -17,22 +17,19 @@
 
     var client = new $.RestClient();
 
-    client.add({
-      name: 'foo',
+    client.add('foo', {
       verbs: {
         snap: 'OPTIONS'
       }
     });
 
-    client.foo.add({
-      name: 'bar',
+    client.foo.add('bar', {
       verbs: {
         crackle: 'PATCH'
       }
     });
 
-    client.foo.bar.add({
-      name: 'baz',
+    client.foo.bar.add('baz', {
       verbs: {
         pop: 'GET'
       }

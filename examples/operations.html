@@ -13,20 +13,17 @@
 
   <script>
 
-    var client = new $.RestClient({
+    var client = new $.RestClient('', {
       cache: 10
     });
 
-    client.add({
-      name: 'data',
-      type: 'GET',
+    client.addVerb('bar','GET', {
+      url:  'data',
       cache: 0
     });
 
-    client.add({
-      name: 'foo',
+    client.addVerb('foo', 'GET', {
       url:  'data',
-      type: 'GET',
       cache: 5
     });
 

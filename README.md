@@ -14,10 +14,10 @@ Downloads
 
 Features
 ---
-* Simple !
-* Helpful Error Messages
+* Simple
 * Uses jQuery Deferred for Asynchonous chaining
 * Basic Auth Support
+* Helpful Error Messages
 
 Basic Usage
 ---
@@ -34,15 +34,14 @@ First setup your page:
 
 <!-- jQuery rest -->
 <script src="//raw.github.com/jpillora/jquery.rest/gh-pages/dist/jquery.rest.min.js"></script>
+<!-- WARNING: I advise downloading and hosting this library on your own server as GitHub has download limits. -->
 
 <script>
   // Examples go here...
 </script>
 ```
 
-*Note: I strongly advise downloading and hosting the library on your own server as GitHub has download limits.*
-
-Basic API
+Hello jquery.rest
 ``` javascript
 var client = new $.RestClient('/rest/api/');
 
@@ -90,8 +89,8 @@ client.foo.read(42);
 // GET /rest/api/foo/42/
 
 client.foo.baz.read();
-// GET /rest/api/foo/{ID Placeholder}/baz/
-// ERROR ! Invalid number of arguments
+// GET /rest/api/foo/???/baz/???/
+// ERROR ! Invalid number of ID arguments, required 1 or 2, provided 0
 client.foo.baz.read(42);
 // GET /rest/api/foo/42/baz/
 client.foo.baz.read(42,21);
@@ -142,8 +141,7 @@ client.foo.bang(42,{my:"data"});
 
 ##### Basic Authentication
 ``` javascript
-var client = new $.RestClient({
-  url: '/rest/api/',
+var client = new $.RestClient('/rest/api/', {
   username: 'admin',
   password: 'secr3t'
 });
@@ -157,8 +155,7 @@ client.foo.read();
 
 ##### Caching
 ``` javascript
-var client = new $.RestClient({
-  url: '/rest/api/',
+var client = new $.RestClient('/rest/api/', {
   cache: 5 //This will cache requests for 5 seconds
   cachableTypes: ["GET"] //This defines what method types can be cached (this is already set by default)
 });
@@ -192,14 +189,12 @@ client.cache.clear();
 
 var client = new $.RestClient();
 
-client.add({
-  name: 'foo',
+client.add('foo', {
   stringifyData: true,
   cache: 5
 });
 
-client.foo.add({
-  name: 'bar',
+client.foo.add('bar', {
   cache: 10,
 });
 
@@ -252,8 +247,7 @@ $.client = new $.RestClient('/rest/api/');
 
 $.client.add('foo');
 
-// Note: not great practise though, use RequireJS !
-
+// Note: Not best practise though, use RequireJS !
 ```
 
 API
@@ -261,42 +255,34 @@ API
 
 Note: This API is subject to change.
 
-#### new $.RestClient( ... )
+#### new $.RestClient( [ `url` ], [ `options` ] )
 
-Instaniates and returns a new `client`:
+Instaniates and returns a new `client`.
 
-* `options` is an options object.
-* `url` is a string representing the base url for all resources.
+#### `client`.add( `name`, [ `options` ] )
 
-#### `client`.add( ... )
+Instaniates a new nested resource on `client`.
 
-Instaniates a new nested resource on `client`:
+Newly created nested resources iterate through their `options.verbs` and addVerb on each.
 
-* `options` is an options object. *Must* contain a `name` property.
-* `name` is a string representing the name for this resource.
-
-Newly created nested resources iterate through their `options.verbs` and addVerb on each (Note: the URL will always be blank for these verbs, essentially using the `client`s url, though with differing HTTP method types).
+Note: The url of each of these verbs is set to `""`.
 
 See default `options.verbs` [here](https://github.com/jpillora/jquery.rest/blob/gh-pages/src/jquery.rest.coffee#L26).
 
+#### `client`.addVerb( `name`, `method`, [ `options` ] )
 
-#### `client`.addVerb( ... )
+Instaniates a new Verb function property on the `client`.
 
-Instaniates a new verb on `client`:
-
-* `options` is an options object. *Must* contain a `name` and `type` property.
-* `name`, `type` strings representing the name for this verb and type is the HTTP method type used.
-
-Newly created verbs are functions on the `client`.
+Note: `name` is used as the `url` if `options.url` is not set.
 
 Options
 ---
 
-All of the `options` arguments mentioned above are all the same except extra properties must be provided for required arguments.
-
-*Important*: All classes inherit their parent's options !
+The `options` object is a plain JavaScript option that may only contain the properties listed below.
 
 See defaults [here](https://github.com/jpillora/jquery.rest/blob/gh-pages/src/jquery.rest.coffee#L26)
+
+*Important*: All classes inherit their parent's options !
 
 #### cache
 
@@ -308,17 +294,25 @@ An array of strings reprenting the HTTP method types that can be cached. Is only
 
 #### verbs
 
-A plain object used as a *name* to *HTTP method type* mapping
+A plain object used as a `name` to `method` mapping.
 
-The base url to use for all requests
+The default `verbs` object is set to:
+``` javascript
+{
+  'create': 'POST',
+  'read'  : 'GET',
+  'update': 'PUT',
+  'delete': 'DELETE'
+}
+```
 
-E.g. to change update from a PUT to a POST, set `verbs` to `{ update: "POST" }`
+For example, to change the default behaviour of update from using PUT to instead use POST, set the `verbs` property to `{ update: 'POST' }`
 
 ### url
 
 A string representing the URL for the given resource or verb.
 
-Note: for nested resources and verbs, the name is used as the url though if this option is set, this default behaviour will be overriden.
+Note: url is not inherited, if it is not set explicitly, the name is used as the URL.
 
 ### stringifyData
 
@@ -326,7 +320,7 @@ When set, will pass all POST data through `JSON.stringify` (polyfill required fo
 
 ### username and password
 
-When both username and password are set, all ajax requests will add an 'Authorization' header. Encoded using `btoa` (pollyfill required not non-webkit).
+When both username and password are set, all ajax requests will add an 'Authorization' header. Encoded using `btoa` (polyfill required not non-webkit).
 
 ### ajax
 
@@ -337,8 +331,8 @@ It is [jQuery's Ajax Options](http://api.jquery.com/jQuery.ajax/)
 Conceptual Overview
 ---
 
-This plugin is made up nested 'Resource' classes. Resources contain options, child Resources and child Operations. Operations are functions that execute each the desired HTTP request.
-Both `new $.RestClient` and `client.add` construct new instances of Resource, however the former will create a root Resource, whereas the latter will create child Resources.
+This plugin is made up nested 'Resource' classes. Resources contain options, child Resources and child Verbs. Verbs are functions that execute various HTTP requests.
+Both `new $.RestClient` and `client.add` construct new instances of Resource, however the former will create a root Resource with no Verbs attached, whereas the latter will create child Resources with all of it's `options.verbs` attached.
 
 Since each Resource can have it's own set of options, at instantiation time, options are inherited from parent Resources, allowing one default set of options with custom options on child Resources.
 
@@ -354,6 +348,10 @@ Issues and pull-requests welcome. To build: `cd *dir*` then `npm install` then `
 
 Change Log
 ---
+
+v0.0.4
+
+* Simplified API
 
 v0.0.3
 

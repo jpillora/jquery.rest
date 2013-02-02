@@ -1,5 +1,4 @@
-var fs = require('fs'),
-    _;
+var fs = require('fs');
 
 /*global module:false*/
 module.exports = function(grunt) {
@@ -34,7 +33,7 @@ module.exports = function(grunt) {
       }
     },
     lint: {
-      files: ['grunt.js', 'src/**/*.js', 'test/**/*.js']
+      files: ['grunt.js', 'src/**/*.js']//, 'test/**/*.js']
     },
     min: {
       dist: {
@@ -75,11 +74,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-coffee');
   grunt.loadNpmTasks('grunt-mocha');
 
-
-
   // Default task.
   grunt.registerTask('default', 'coffee concat lint min');
-  //grunt.renameTask('watch', 'realwatch');
-  // grunt.registerTask('watch', 'default real-watch');
 
 };

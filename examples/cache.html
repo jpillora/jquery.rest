@@ -18,7 +18,7 @@
       console.log(obj);
     }
 
-    var client = new $.RestClient({
+    var client = new $.RestClient('', {
       cache: 5
     });
 
@@ -28,12 +28,19 @@
 
     var n = 0;
     var request = function() {
-      console.log(n++);
-      client.data().done(result);
+      var wait = Math.round(Math.random()*1500);
+      console.log("request " + n++ + " wait " + wait + "ms...");
+      var r = client.data({ request: 42 }).done(result);
       if(n <= 20) 
-      setTimeout(request, Math.random()*1500);
+      setTimeout(request, wait);
     };
     request();
+
+    $.ajaxPrefilter( function( options ) {
+
+      console.log(options);
+
+    });
 
   </script>
 
