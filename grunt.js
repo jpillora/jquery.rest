@@ -22,7 +22,8 @@ module.exports = function(grunt) {
     coffee: {
       compile: {
         files: {
-          'compile/<%= pkg.name %>.js': 'src/<%= pkg.name %>.coffee'
+          'compile/<%= pkg.name %>.js': 'src/<%= pkg.name %>.coffee',
+          'test/tests/*.js': 'test/tests/*.coffee'
         }
       }
     },
@@ -41,7 +42,9 @@ module.exports = function(grunt) {
         dest: 'dist/<%= pkg.name %>.min.js'
       }
     },
-
+    mocha: {
+      all: [ 'test/runner.html' ]
+    },
     watch: {
       scripts: {
         files: 'src/*.coffee',

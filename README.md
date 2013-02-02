@@ -34,7 +34,7 @@ First setup your page:
 
 <!-- jQuery rest -->
 <script src="//raw.github.com/jpillora/jquery.rest/gh-pages/dist/jquery.rest.min.js"></script>
-<!-- WARNING: I advise downloading and hosting this library on your own server as GitHub has download limits. -->
+<!-- WARNING: I advise not using this link, instead download and host this library on your own server as GitHub has download limits -->
 
 <script>
   // Examples go here...
