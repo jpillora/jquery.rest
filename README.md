@@ -1,6 +1,6 @@
 jQuery REST Client
 =====
-v0.0.3
+v0.0.4
 
 Summary
 ---
@@ -9,8 +9,8 @@ A jQuery plugin for easy consumption of REST APIs
 Downloads
 ---
 
-* [Development Version](http://raw.github.com/jpillora/jquery.rest/gh-pages/dist/jquery.rest.js)
-* [Production Version](http://raw.github.com/jpillora/jquery.rest/gh-pages/dist/jquery.rest.min.js)
+* [Development Version](http://jpillora.github.com/jquery.rest/dist/jquery.rest.js)
+* [Production Version](http://jpillora.github.com/jquery.rest/dist/jquery.rest.min.js)
 
 Features
 ---
@@ -33,7 +33,7 @@ First setup your page:
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
 
 <!-- jQuery rest -->
-<script src="//raw.github.com/jpillora/jquery.rest/gh-pages/dist/jquery.rest.min.js"></script>
+<script src="http://jpillora.github.com/jquery.rest/dist/jquery.rest.js"></script>
 <!-- WARNING: I advise not using this link, instead download and host this library on your own server as GitHub has download limits -->
 
 <script>

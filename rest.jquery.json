@@ -19,7 +19,7 @@
   ],
   "bugs": "https://github.com/jpillora/jquery.rest/issues",
   "homepage": "https://github.com/jpillora/jquery.rest",
-  "docs": "https://github.com/jpillora/jquery.rest",
+  "docs": "https://github.com/jpillora/jquery.rest#jquery-rest-client",
   "download": "https://github.com/jpillora/jquery.rest#downloads",
   "dependencies": {
     "jquery": ">=1.5"
