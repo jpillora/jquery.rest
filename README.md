@@ -189,7 +189,7 @@ client.cache.clear();
 ##### Override Options
 ``` javascript
 
-var client = new $.RestClient();
+var client = new $.RestClient('/rest/api/');
 
 client.add('foo', {
   stringifyData: true,
@@ -201,12 +201,42 @@ client.foo.add('bar', {
 });
 
 client.foo.create({a:1});
-// POST /foo/ (stringifies data and uses a cache timeout of 5)
+// POST /rest/api/foo/ (stringifies data and uses a cache timeout of 5)
 
 client.bar.create(42,{a:2});
-// POST /foo/42/bar/ (still stringifies data though now uses a cache timeout of 10)
+// POST /rest/api/foo/42/bar/ (still stringifies data though now uses a cache timeout of 10)
 
 ```
+
+##### Fancy URLs
+``` javascript
+var client = new $.RestClient('/rest/api/');
+```
+Say we want to create an endpoint `/rest/api/foo-fancy-1337-url/`, instead of doing:
+``` javascript
+client.add('foo-fancy-1337-url');
+
+client.['foo-fancy-1337-url'].read(42);
+// GET /rest/api/foo-fancy-1337-url/42
+```
+Which is bad and ugly, we do:
+``` javascript
+client.add('foo', { url: 'foo-fancy-1337-url' });
+
+client.foo.read(42);
+// GET /rest/api/foo-fancy-1337-url/42
+```
+
+##### Query Parameters
+``` javascript
+var client = new $.RestClient('/rest/api/');
+
+client.add('foo');
+
+client.read({bar:42});
+// GET /rest/api/foo?bar=42
+```
+*Note: Convience option for query parameters when POSTing is in progress* 
 
 ##### Show API Example
 ``` javascript
