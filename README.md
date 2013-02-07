@@ -289,11 +289,11 @@ Note: This API is subject to change.
 
 #### new $.RestClient( [ `url` ], [ `options` ] )
 
-Instaniates and returns a new `client`.
+Instantiates and returns the root resource. Below denoted as `client`.
 
 #### `client`.add( `name`, [ `options` ] )
 
-Instaniates a new nested resource on `client`.
+Instaniates a nested resource on `client`. Internally this does another `new $.RestClient` though instead of setting it as root, it will add it as a nested (or child) resource as a property on the current `client`.
 
 Newly created nested resources iterate through their `options.verbs` and addVerb on each.
 
@@ -324,7 +324,7 @@ The `options` object is a plain JavaScript option that may only contain the prop
 
 See defaults [here](https://github.com/jpillora/jquery.rest/blob/gh-pages/src/jquery.rest.coffee#L32)
 
-*Important*: All classes inherit their parent's options !
+*Important*: Both resources and verbs inherit their parent's options !
 
 #### cache
 
