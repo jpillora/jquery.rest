@@ -307,6 +307,16 @@ Instaniates a new Verb function property on the `client`.
 
 Note: `name` is used as the `url` if `options.url` is not set.
 
+#### `client`.`verb`( [`id1`], ..., [`idN`], [`data`])
+
+All verbs use this signature. Internally, they are all *essentially* calls to `$.ajax` with custom options depending on the parent `client` and `options`.
+
+`id`s must be a string or number.
+
+`data` is $.ajax({ `data`: }) (see jQuery docs).
+
+Note: A helpful error will be thrown when invalid arguments are used.
+
 Options
 ---
 
