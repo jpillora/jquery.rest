@@ -3,7 +3,6 @@ var fs = require('fs');
 /*global module:false*/
 module.exports = function(grunt) {
 
-
   // Project configuration.
   grunt.initConfig({
 
