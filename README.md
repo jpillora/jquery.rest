@@ -313,7 +313,7 @@ All verbs use this signature. Internally, they are all *essentially* calls to `$
 
 `id`s must be a string or number.
 
-`data` is $.ajax({ `data`: }) (see jQuery docs).
+`data` is a [jQuery Ajax](http://api.jquery.com/jQuery.ajax/) Options Object's data property.
 
 Note: A helpful error will be thrown when invalid arguments are used.
 
@@ -332,7 +332,7 @@ A number reprenting the number of seconds to used previously cached requests. Wh
 
 ### cachableTypes
 
-An array of strings reprenting the HTTP method types that can be cached. Is only "GET" by default. 
+An array of strings reprenting the HTTP method types that can be cached. Is `["GET"]` by default. 
 
 #### verbs
 
@@ -366,7 +366,7 @@ When both username and password are set, all ajax requests will add an 'Authoriz
 
 ### ajax
 
-It is [jQuery's Ajax Options](http://api.jquery.com/jQuery.ajax/)
+A [jQuery Ajax](http://api.jquery.com/jQuery.ajax/) Options Object
 
 *Note: Want more options ? Open up a New Feature Issue above.*
 
