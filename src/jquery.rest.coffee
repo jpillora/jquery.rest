@@ -34,6 +34,7 @@ defaultOpts =
   cache: 0
   cachableMethods: ['GET']
   stringifyData: false
+  stripTrailingSlash: false
   password: null
   username: null
   verbs:
@@ -207,14 +208,15 @@ class Resource
     if data and @opts.stringifyData
       data = stringify data
 
+    if @opts.stripTrailingSlash
+      url = url.replace /\/$/, ""
+
     ajaxOpts = { url, type:method, headers }
     ajaxOpts.data = data if data
     #add this verb's/resource's defaults
     ajaxOpts = $.extend true, {}, @opts.ajax, ajaxOpts 
 
     useCache = @opts.cache and $.inArray(method, @opts.cachableMethods) >= 0
-
-    ajaxOpts.foo = 42
 
     if useCache
       key = @root.cache.key ajaxOpts
@@ -224,8 +226,7 @@ class Resource
     req = $.ajax ajaxOpts
 
     if useCache
-      req.done (a,b,c,d)=>
-        @root.cache.put key, req
+      req.done => @root.cache.put key, req
 
     return req
 

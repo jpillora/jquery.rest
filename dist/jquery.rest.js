@@ -1,4 +1,4 @@
-/*! jQuery REST Client - v0.0.3 - 2013-02-02
+/*! jQuery REST Client - v0.0.4 - 2013-02-21
 * https://github.com/jpillora/jquery.rest
 * Copyright (c) 2013 Jaime Pillora; Licensed MIT */
 
@@ -64,6 +64,7 @@
     cache: 0,
     cachableMethods: ['GET'],
     stringifyData: false,
+    stripTrailingSlash: false,
     password: null,
     username: null,
     verbs: {
@@ -332,6 +333,9 @@
       if (data && this.opts.stringifyData) {
         data = stringify(data);
       }
+      if (this.opts.stripTrailingSlash) {
+        url = url.replace(/\/$/, "");
+      }
       ajaxOpts = {
         url: url,
         type: method,
@@ -342,7 +346,6 @@
       }
       ajaxOpts = $.extend(true, {}, this.opts.ajax, ajaxOpts);
       useCache = this.opts.cache && $.inArray(method, this.opts.cachableMethods) >= 0;
-      ajaxOpts.foo = 42;
       if (useCache) {
         key = this.root.cache.key(ajaxOpts);
         req = this.root.cache.get(key);
@@ -352,7 +355,7 @@
       }
       req = $.ajax(ajaxOpts);
       if (useCache) {
-        req.done(function(a, b, c, d) {
+        req.done(function() {
           return _this.root.cache.put(key, req);
         });
       }

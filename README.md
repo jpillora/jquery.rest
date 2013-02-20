@@ -313,9 +313,9 @@ All verbs use this signature. Internally, they are all *essentially* calls to `$
 
 `id`s must be a string or number.
 
-`data` is a [jQuery Ajax](http://api.jquery.com/jQuery.ajax/) Options Object's data property.
+`data` is a [jQuery Ajax](http://api.jquery.com/jQuery.ajax/) Options Object's data property. If `ajax.data` is set on the `client` this `data` will extend it.
 
-Note: A helpful error will be thrown when invalid arguments are used.
+Note: A helpful error will be thrown if invalid arguments are used.
 
 Options
 ---
@@ -360,6 +360,10 @@ Note: url is not inherited, if it is not set explicitly, the name is used as the
 
 When set, will pass all POST data through `JSON.stringify` (polyfill required for IE<=8).
 
+### stripTrailingSlash
+
+When set, the trailing slash will be stripped off the URL.
+
 ### username and password
 
 When both username and password are set, all ajax requests will add an 'Authorization' header. Encoded using `btoa` (polyfill required not non-webkit).
@@ -386,7 +390,7 @@ Todo
 
 Contributing
 ---
-Issues and pull-requests welcome. To build: `cd *dir*` then `npm install` then `grunt`.
+Issues and pull-requests welcome. To build: `cd *dir*` then `npm install` then `grunt`. Grunt wil compile the source `jquery.rest.coffee` into `.js` which will then get minified `min.js`.
 
 Change Log
 ---
