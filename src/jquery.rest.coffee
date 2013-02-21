@@ -153,7 +153,7 @@ class Resource
     @[name] = new Verb(name, method, options, @).call
   
   show: (d=0)->
-    error "Plugin Bug! Recurrsion Fail" if d > 25
+    error "Plugin Bug! Recursion Fail" if d > 25
     console.log(s(d)+@name+": " + @url) if @name
     $.each @, (name, fn) ->
       fn.instance.show(d+1) if $.type(fn) is 'function' and fn.instance instanceof Verb and name isnt 'del'

@@ -248,7 +248,7 @@
         d = 0;
       }
       if (d > 25) {
-        error("Plugin Bug! Recurrsion Fail");
+        error("Plugin Bug! Recursion Fail");
       }
       if (this.name) {
         console.log(s(d) + this.name + ": " + this.url);
