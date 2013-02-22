@@ -216,7 +216,7 @@ Say we want to create an endpoint `/rest/api/foo-fancy-1337-url/`, instead of do
 ``` javascript
 client.add('foo-fancy-1337-url');
 
-client.['foo-fancy-1337-url'].read(42);
+client['foo-fancy-1337-url'].read(42);
 // GET /rest/api/foo-fancy-1337-url/42
 ```
 Which is bad and ugly, we do:
@@ -269,7 +269,7 @@ ROOT: /rest/api/
     delete: DELETE 
 ```
 
-##### Simplify 
+##### Simplify `client`
 ``` javascript
 
 var client = new $.RestClient('/rest/api/');
@@ -277,11 +277,14 @@ var client = new $.RestClient('/rest/api/');
 client.add('forum');
 client.forum.add('post');
 client.forum.post.add('comment');
+```
 
 Instead of:
 ``` javascript
 client.forum.post.comment.read();
+client.forum.post.comment.update(42);
 ```
+
 You can do:
 ``` javascript
 var comment = client.forum.post.comment;
@@ -303,8 +306,6 @@ $.client.add('foo');
 
 API
 ---
-
-Note: This API is subject to change.
 
 #### new $.RestClient( [ `url` ], [ `options` ] )
 
