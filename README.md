@@ -4,7 +4,7 @@ v0.0.4
 
 Summary
 ---
-A jQuery plugin for easy consumption of REST APIs
+A jQuery plugin for easy consumption of RESTful APIs
 
 Downloads
 ---
