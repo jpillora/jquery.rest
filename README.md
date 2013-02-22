@@ -2,6 +2,9 @@ jQuery REST Client
 =====
 v0.0.4
 
+<!-- Tracker -->
+[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/2ec87aabeaf1ff78eef8883aae18577c "githalytics.com")](http://githalytics.com/github.com/jpillora)
+
 Summary
 ---
 A jQuery plugin for easy consumption of RESTful APIs
