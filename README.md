@@ -269,6 +269,25 @@ ROOT: /rest/api/
     delete: DELETE 
 ```
 
+##### Simplify 
+``` javascript
+
+var client = new $.RestClient('/rest/api/');
+
+client.add('forum');
+client.forum.add('post');
+client.forum.post.add('comment');
+
+Instead of:
+``` javascript
+client.forum.post.comment.read();
+```
+You can do:
+``` javascript
+var comment = client.forum.post.comment;
+comment.read();
+comment.delete(42);
+```
 
 ##### Global/Singleton Example
 ``` javascript
@@ -279,7 +298,7 @@ $.client = new $.RestClient('/rest/api/');
 
 $.client.add('foo');
 
-// Note: Not best practise though, use RequireJS !
+// Note: This is not best practise, use RequireJS or similar instead !
 ```
 
 API
