@@ -2,6 +2,8 @@ jQuery REST Client
 =====
 v0.0.4
 
+![GA Tracker](https://www.google-analytics.com/__utm.gif?utmac=UA-38709761-3)
+
 Summary
 ---
 A jQuery plugin for easy consumption of RESTful APIs
@@ -51,6 +53,8 @@ client.foo.read();
 // GET /rest/api/foo/
 client.foo.read(42);
 // GET /rest/api/foo/42/
+client.foo.read('forty-two');
+// GET /rest/api/foo/forty-two/
 ```
 
 Retrieving Results (Uses [jQuery's $.Deferred](http://api.jquery.com/category/deferred-object/))
@@ -269,7 +273,7 @@ ROOT: /rest/api/
     delete: DELETE 
 ```
 
-##### Simplify `client`
+##### Simplify `client` 
 ``` javascript
 
 var client = new $.RestClient('/rest/api/');
@@ -281,15 +285,15 @@ client.forum.post.add('comment');
 
 Instead of:
 ``` javascript
-client.forum.post.comment.read();
-client.forum.post.comment.update(42);
+client.forum.post.comment.read(42,21,7);
+client.forum.post.comment.update(42,21,7);
 ```
 
 You can do:
 ``` javascript
 var comment = client.forum.post.comment;
-comment.read();
-comment.delete(42);
+comment.read(42,21,7);
+comment.update(42,21,7);
 ```
 
 ##### Global/Singleton Example
@@ -300,9 +304,8 @@ $.client = new $.RestClient('/rest/api/');
 // in another file...
 
 $.client.add('foo');
-
-// Note: This is not best practise, use RequireJS or similar instead !
 ```
+*Note: This is not best practise, use RequireJS or similar instead !*
 
 API
 ---
@@ -430,11 +433,4 @@ v0.0.2
 v0.0.1
 
 * Alpha Version
-
-
-
-
-
-<!-- Tracker -->
-[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/2ec87aabeaf1ff78eef8883aae18577c "githalytics.com")](http://githalytics.com/github.com/jpillora)
 
