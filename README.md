@@ -2,7 +2,7 @@ jQuery REST Client
 =====
 v0.0.4
 
-![GA Tracker](https://www.google-analytics.com/__utm.gif?utmac=UA-38709761-3)
+[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/fb83bb834123c2ede226e1931ea6956a "githalytics.com")](http://githalytics.com/jpillora/jquery.rest)
 
 Summary
 ---
