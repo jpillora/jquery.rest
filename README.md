@@ -4,6 +4,8 @@ v0.0.4
 
 [![githalytics.com alpha](https://cruel-carlota.pagodabox.com/fb83bb834123c2ede226e1931ea6956a "githalytics.com")](http://githalytics.com/jpillora/jquery.rest)
 
+[![jaime tracking](https://jpillora-secure.appspot.com/track)](http://www.jpillora.com)
+
 Summary
 ---
 A jQuery plugin for easy consumption of RESTful APIs
