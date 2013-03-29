@@ -4,8 +4,6 @@ v0.0.4
 
 [![githalytics.com alpha](https://cruel-carlota.pagodabox.com/fb83bb834123c2ede226e1931ea6956a "githalytics.com")](http://githalytics.com/jpillora/jquery.rest)
 
-[![jaime tracking](https://jpillora-secure.appspot.com/track)](http://www.jpillora.com)
-
 Summary
 ---
 A jQuery plugin for easy consumption of RESTful APIs
@@ -209,7 +207,7 @@ client.foo.add('bar', {
 client.foo.create({a:1});
 // POST /rest/api/foo/ (stringifies data and uses a cache timeout of 5)
 
-client.bar.create(42,{a:2});
+client.foo.bar.create(42,{a:2});
 // POST /rest/api/foo/42/bar/ (still stringifies data though now uses a cache timeout of 10)
 
 ```
@@ -412,6 +410,7 @@ Todo
 * CSRF
 * Method Override Header
 * Add Tests
+* Auto-Cache busting
 
 Contributing
 ---
