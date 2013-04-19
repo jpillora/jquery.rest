@@ -97,8 +97,8 @@ client.foo.baz.read();
 // !ERROR! Invalid number of ID arguments, required 1 or 2, provided 0
 client.foo.baz.read(42);
 // GET /rest/api/foo/42/baz/
-client.foo.baz.read(42,21);
-// GET /rest/api/foo/42/baz/21/
+client.foo.baz.read('forty-two',21);
+// GET /rest/api/foo/forty-two/baz/21/
 
 ```
 
@@ -127,7 +127,7 @@ client.foo.update(42, {my:"updates"});
 
 // D
 client.foo.delete(42);
-client.foo.del(42); // if JSLint is complaining...
+client.foo.del(42); // or if JSLint is complaining...
 // DELETE /rest/api/foo/42/
 ```
 
@@ -196,7 +196,7 @@ client.cache.clear();
 var client = new $.RestClient('/rest/api/');
 
 client.add('foo', {
-  stringifyData: true,
+  stripTrailingSlash: true,
   cache: 5
 });
 
@@ -204,11 +204,11 @@ client.foo.add('bar', {
   cache: 10,
 });
 
-client.foo.create({a:1});
-// POST /rest/api/foo/ (stringifies data and uses a cache timeout of 5)
+client.foo.read(21);
+// GET /rest/api/foo (strip trailing slash and uses a cache timeout of 5)
 
-client.foo.bar.create(42,{a:2});
-// POST /rest/api/foo/42/bar/ (still stringifies data though now uses a cache timeout of 10)
+client.foo.bar.read(7, 42);
+// GET /rest/api/foo/7/bar/42 (still strip trailing slash though now uses a cache timeout of 10)
 
 ```
 
@@ -286,14 +286,14 @@ client.forum.post.add('comment');
 Instead of:
 ``` javascript
 client.forum.post.comment.read(42,21,7);
-client.forum.post.comment.update(42,21,7);
+client.forum.post.comment.update(42,21,7, {...});
 ```
 
 You can do:
 ``` javascript
 var comment = client.forum.post.comment;
 comment.read(42,21,7);
-comment.update(42,21,7);
+comment.update(42,21,7, {...});
 ```
 
 ##### Global/Singleton Example
@@ -305,7 +305,7 @@ $.client = new $.RestClient('/rest/api/');
 
 $.client.add('foo');
 ```
-*Note: This is not best practise, use RequireJS or similar instead !*
+*Note: This is not best practise, use RequireJS, CommonJS or similar !*
 
 API
 ---
