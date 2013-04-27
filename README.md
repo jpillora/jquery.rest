@@ -20,6 +20,7 @@ Features
 * Uses jQuery Deferred for Asynchonous chaining
 * Basic Auth Support
 * Helpful Error Messages
+* Memory Cache
 
 Basic Usage
 ---
@@ -158,6 +159,8 @@ client.foo.read();
 // GET /rest/api/foo/
 // With header "Authorization: Basic YWRtaW46c2VjcjN0"
 ```
+
+*Note: A [window.btoa](https://developer.mozilla.org/en-US/docs/DOM/window.btoa) polyfill such as [Base64.js](https://github.com/davidchambers/Base64.js) will be required for this feature to work in IE6,7,8,9*
 
 ##### Caching
 ``` javascript
