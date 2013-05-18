@@ -28,6 +28,9 @@ validateOpts = (options) ->
 validateStr = (name, str) ->
   error "'#{name}' must be a string" unless 'string' is $.type str
 
+deleteWarning = ->
+  alert '"delete()" has been deprecated. Please use "destroy()" or "del()" instead.'
+
 #defaults
 defaultOpts =
   url: ''
@@ -41,7 +44,7 @@ defaultOpts =
     'create' : 'POST'
     'read'   : 'GET'
     'update' : 'PUT'
-    'delete' : 'DELETE'
+    'destroy': 'DELETE'
   ajax:
     dataType: 'json'
 
@@ -54,13 +57,13 @@ class Cache
     return diff <= @parent.opts.cache*1000
   key: (obj) ->
     key = ""
-    $.each obj, (k,v) => 
+    $.each obj, (k,v) =>
       key += k + "=" + (if $.isPlainObject(v) then "{"+@key(v)+"}" else v) + "|"
     key
   get: (key) ->
     result = @c[key]
     unless result
-      return 
+      return
     if @valid result.created
       return result.data
     return
@@ -139,9 +142,11 @@ class Resource
     @urlNoId = @parent.url + "#{@opts.url || @name}/"
     @url = @urlNoId + ":ID_#{@numParents}/"
 
-    #add all verbs defined for this resource 
+    #add all verbs defined for this resource
     $.each @opts.verbs, $.proxy @addVerb, @
-    @del = @delete if @delete
+    if @destroy
+      @del = @destroy
+      @delete = deleteWarning
 
   error: (msg) ->
     error "Cannot add Resource: " + msg
@@ -151,7 +156,7 @@ class Resource
 
   addVerb: (name, method, options) ->
     @[name] = new Verb(name, method, options, @).call
-  
+
   show: (d=0)->
     error "Plugin Bug! Recursion Fail" if d > 25
     console.log(s(d)+@name+": " + @url) if @name
@@ -173,20 +178,20 @@ class Resource
       if t is 'string' or t is 'number'
         ids.push(arg)
       else if $.isPlainObject(arg) and data is null
-        data = arg 
+        data = arg
       else
-        error "Invalid argument: #{arg} (#{t})." + 
+        error "Invalid argument: #{arg} (#{t})." +
               " Must be strings or ints (IDs) followed by one optional plain object (data)."
 
     numIds = ids.length
 
     canUrl = name isnt 'create'
     canUrlNoId = name isnt 'update' and name isnt 'delete'
-    
+
     url = null
     url = @url if canUrl and numIds is @numParents
     url = @urlNoId if canUrlNoId and numIds is @numParents - 1
-    
+
     if url is null
       msg = (@numParents - 1) if canUrlNoId
       msg = ((if msg then msg+' or ' else '') + @numParents) if canUrl
@@ -214,7 +219,7 @@ class Resource
     ajaxOpts = { url, type:method, headers }
     ajaxOpts.data = data if data
     #add this verb's/resource's defaults
-    ajaxOpts = $.extend true, {}, @opts.ajax, ajaxOpts 
+    ajaxOpts = $.extend true, {}, @opts.ajax, ajaxOpts
 
     useCache = @opts.cache and $.inArray(method, @opts.cachableMethods) >= 0
 

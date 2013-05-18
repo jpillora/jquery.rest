@@ -11,8 +11,15 @@ A jQuery plugin for easy consumption of RESTful APIs
 Downloads
 ---
 
-* [Development Version](http://jpillora.github.com/jquery.rest/dist/jquery.rest.js)
-* [Production Version](http://jpillora.github.com/jquery.rest/dist/jquery.rest.min.js)
+* [Development Version](http://jqueryrest.jpillora.com)
+* [Production Version](http://jqueryrestmin.jpillora.com)
+
+*File Size Report*
+```
+Original: 9933 bytes.
+Minified: 5169 bytes.
+Gzipped:  1178 bytes.
+```
 
 Features
 ---
@@ -66,12 +73,12 @@ client.add('foo');
 
 var request = client.foo.read();
 // GET /rest/api/foo/
-request.done(function (data){ 
+request.done(function (data){
   alert('I have data: ' + data);
 });
 
 // OR simply:
-client.foo.read().done(function (data){ 
+client.foo.read().done(function (data){
   alert('I have data: ' + data);
 });
 ```
@@ -95,7 +102,7 @@ client.foo.read(42);
 
 client.foo.baz.read();
 // GET /rest/api/foo/???/baz/???/
-// !ERROR! Invalid number of ID arguments, required 1 or 2, provided 0
+// ERROR: jquery.rest: Invalid number of ID arguments, required 1 or 2, provided 0
 client.foo.baz.read(42);
 // GET /rest/api/foo/42/baz/
 client.foo.baz.read('forty-two',21);
@@ -243,7 +250,7 @@ client.add('foo');
 client.read({bar:42});
 // GET /rest/api/foo?bar=42
 ```
-*Note: Convience option for query parameters when POSTing is in progress* 
+*Note: Convience option for query parameters when POSTing is in progress*
 
 ##### Show API Example
 ``` javascript
@@ -273,10 +280,10 @@ ROOT: /rest/api/
     create: POST
     read: GET
     update: PUT
-    delete: DELETE 
+    delete: DELETE
 ```
 
-##### Simplify `client` 
+##### Simplify `client`
 ``` javascript
 
 var client = new $.RestClient('/rest/api/');
@@ -358,7 +365,7 @@ A number reprenting the number of seconds to used previously cached requests. Wh
 
 ### cachableTypes
 
-An array of strings reprenting the HTTP method types that can be cached. Is `["GET"]` by default. 
+An array of strings reprenting the HTTP method types that can be cached. Is `["GET"]` by default.
 
 #### verbs
 

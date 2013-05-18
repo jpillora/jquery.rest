@@ -1,11 +1,9 @@
-/*! jQuery REST Client - v0.0.4 - 2013-02-21
-* https://github.com/jpillora/jquery.rest
-* Copyright (c) 2013 Jaime Pillora; Licensed MIT */
-
+/*! jQuery REST Client - v0.0.5 - 2013-05-18
+ * https://github.com/jpillora/jquery.rest
+ * Copyright (c) 2013 Jaime Pillora; Licensed MIT */
 (function() {
   'use strict';
-
-  var Cache, Resource, Verb, defaultOpts, encode64, error, inheritExtend, s, stringify, validateOpts, validateStr;
+  var Cache, Resource, Verb, defaultOpts, deleteWarning, encode64, error, inheritExtend, s, stringify, validateOpts, validateStr;
 
   error = function(msg) {
     throw "ERROR: jquery.rest: " + msg;
@@ -13,6 +11,7 @@
 
   s = function(n) {
     var t;
+
     t = "";
     while (n-- > 0) {
       t += "  ";
@@ -36,6 +35,7 @@
 
   inheritExtend = function(a, b) {
     var F;
+
     F = function() {};
     F.prototype = a;
     return $.extend(true, new F(), b);
@@ -59,6 +59,10 @@
     }
   };
 
+  deleteWarning = function() {
+    return alert('"delete()" has been deprecated. Please use "destroy()" or "del()" instead.');
+  };
+
   defaultOpts = {
     url: '',
     cache: 0,
@@ -71,7 +75,7 @@
       'create': 'POST',
       'read': 'GET',
       'update': 'PUT',
-      'delete': 'DELETE'
+      'destroy': 'DELETE'
     },
     ajax: {
       dataType: 'json'
@@ -79,7 +83,6 @@
   };
 
   Cache = (function() {
-
     function Cache(parent) {
       this.parent = parent;
       this.c = {};
@@ -87,6 +90,7 @@
 
     Cache.prototype.valid = function(date) {
       var diff;
+
       diff = new Date().getTime() - date.getTime();
       return diff <= this.parent.opts.cache * 1000;
     };
@@ -94,6 +98,7 @@
     Cache.prototype.key = function(obj) {
       var key,
         _this = this;
+
       key = "";
       $.each(obj, function(k, v) {
         return key += k + "=" + ($.isPlainObject(v) ? "{" + _this.key(v) + "}" : v) + "|";
@@ -103,6 +108,7 @@
 
     Cache.prototype.get = function(key) {
       var result;
+
       result = this.c[key];
       if (!result) {
         return;
@@ -121,6 +127,7 @@
 
     Cache.prototype.clear = function(regexp) {
       var _this = this;
+
       if (regexp) {
         return $.each(this.c, function(k) {
           if (k.match(regexp)) {
@@ -137,7 +144,6 @@
   })();
 
   Verb = (function() {
-
     function Verb(name, method, options, parent) {
       this.name = name;
       this.method = method;
@@ -164,6 +170,7 @@
 
     Verb.prototype.call = function() {
       var r;
+
       r = this.parent.extractUrlData(this.method, arguments);
       if (this.custom) {
         r.url += this.opts.url || this.name;
@@ -180,7 +187,6 @@
   })();
 
   Resource = (function() {
-
     function Resource(nameOrUrl, options, parent) {
       if (options == null) {
         options = {};
@@ -225,8 +231,9 @@
       this.urlNoId = this.parent.url + ("" + (this.opts.url || this.name) + "/");
       this.url = this.urlNoId + (":ID_" + this.numParents + "/");
       $.each(this.opts.verbs, $.proxy(this.addVerb, this));
-      if (this["delete"]) {
-        return this.del = this["delete"];
+      if (this.destroy) {
+        this.del = this.destroy;
+        return this["delete"] = deleteWarning;
       }
     };
 
@@ -244,6 +251,7 @@
 
     Resource.prototype.show = function(d) {
       var _this = this;
+
       if (d == null) {
         d = 0;
       }
@@ -272,6 +280,7 @@
 
     Resource.prototype.extractUrlData = function(name, args) {
       var arg, canUrl, canUrlNoId, data, i, id, ids, msg, numIds, t, url, _i, _j, _len, _len1;
+
       ids = [];
       data = null;
       for (_i = 0, _len = args.length; _i < _len; _i++) {
@@ -317,6 +326,7 @@
     Resource.prototype.ajax = function(method, url, data, headers) {
       var ajaxOpts, encoded, key, req, useCache,
         _this = this;
+
       if (headers == null) {
         headers = {};
       }

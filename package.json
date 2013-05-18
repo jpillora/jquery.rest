@@ -1,10 +1,11 @@
 {
   "name": "jquery.rest",
-  "version": "0.0.4",
-  "dependencies":[
-    "grunt",
-    "grunt-contrib-watch",
-    "grunt-contrib-coffee",
-    "grunt-mocha"
-  ]
+  "version": "0.0.5",
+  "devDependencies": {
+    "grunt-contrib-coffee": "~0.7.0",
+    "grunt-contrib-uglify": "~0.2.0",
+    "grunt": "~0.4.1",
+    "grunt-contrib-watch": "~0.4.3",
+    "grunt-contrib-concat": "~0.3.0"
+  }
 }
