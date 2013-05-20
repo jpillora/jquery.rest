@@ -43,7 +43,7 @@ First setup your page:
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
 
 <!-- jQuery rest -->
-<script src="http://jpillora.github.com/jquery.rest/dist/jquery.rest.js"></script>
+<script src="http://jpillora.com/jquery.rest/dist/jquery.rest.min.js"></script>
 <!-- WARNING: I advise not using this link, instead download and host this library on your own server as GitHub has download limits -->
 
 <script>
@@ -134,9 +134,10 @@ client.foo.update(42, {my:"updates"});
 // PUT /rest/api/42/   my=updates
 
 // D
-client.foo.delete(42);
-client.foo.del(42); // or if JSLint is complaining...
+client.foo.destroy(42);
+client.foo.del(42);
 // DELETE /rest/api/foo/42/
+// Note: client.foo.delete() has been disabled due to IE compatibility
 ```
 
 ##### Adding Custom Verbs
