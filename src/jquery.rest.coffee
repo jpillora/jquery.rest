@@ -212,6 +212,7 @@ class Resource
 
     if data and @opts.stringifyData
       data = stringify data
+      headers['Content-Type'] = "application/json"
 
     if @opts.stripTrailingSlash
       url = url.replace /\/$/, ""

@@ -1,4 +1,4 @@
-/*! jQuery REST Client - v0.0.5 - 2013-05-18
+/*! jQuery REST Client - v0.0.5 - 2013-07-29
  * https://github.com/jpillora/jquery.rest
  * Copyright (c) 2013 Jaime Pillora; Licensed MIT */
 (function() {
@@ -11,7 +11,6 @@
 
   s = function(n) {
     var t;
-
     t = "";
     while (n-- > 0) {
       t += "  ";
@@ -35,7 +34,6 @@
 
   inheritExtend = function(a, b) {
     var F;
-
     F = function() {};
     F.prototype = a;
     return $.extend(true, new F(), b);
@@ -90,7 +88,6 @@
 
     Cache.prototype.valid = function(date) {
       var diff;
-
       diff = new Date().getTime() - date.getTime();
       return diff <= this.parent.opts.cache * 1000;
     };
@@ -98,7 +95,6 @@
     Cache.prototype.key = function(obj) {
       var key,
         _this = this;
-
       key = "";
       $.each(obj, function(k, v) {
         return key += k + "=" + ($.isPlainObject(v) ? "{" + _this.key(v) + "}" : v) + "|";
@@ -108,7 +104,6 @@
 
     Cache.prototype.get = function(key) {
       var result;
-
       result = this.c[key];
       if (!result) {
         return;
@@ -127,7 +122,6 @@
 
     Cache.prototype.clear = function(regexp) {
       var _this = this;
-
       if (regexp) {
         return $.each(this.c, function(k) {
           if (k.match(regexp)) {
@@ -170,7 +164,6 @@
 
     Verb.prototype.call = function() {
       var r;
-
       r = this.parent.extractUrlData(this.method, arguments);
       if (this.custom) {
         r.url += this.opts.url || this.name;
@@ -251,7 +244,6 @@
 
     Resource.prototype.show = function(d) {
       var _this = this;
-
       if (d == null) {
         d = 0;
       }
@@ -280,7 +272,6 @@
 
     Resource.prototype.extractUrlData = function(name, args) {
       var arg, canUrl, canUrlNoId, data, i, id, ids, msg, numIds, t, url, _i, _j, _len, _len1;
-
       ids = [];
       data = null;
       for (_i = 0, _len = args.length; _i < _len; _i++) {
@@ -326,7 +317,6 @@
     Resource.prototype.ajax = function(method, url, data, headers) {
       var ajaxOpts, encoded, key, req, useCache,
         _this = this;
-
       if (headers == null) {
         headers = {};
       }
@@ -342,6 +332,7 @@
       }
       if (data && this.opts.stringifyData) {
         data = stringify(data);
+        headers['Content-Type'] = "application/json";
       }
       if (this.opts.stripTrailingSlash) {
         url = url.replace(/\/$/, "");
