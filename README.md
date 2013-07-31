@@ -1,8 +1,12 @@
 jQuery REST Client
 =====
-v0.0.4
+v0.0.5
 
 [![githalytics.com alpha](https://cruel-carlota.pagodabox.com/fb83bb834123c2ede226e1931ea6956a "githalytics.com")](http://githalytics.com/jpillora/jquery.rest)
+
+<a href="https://twitter.com/intent/tweet?hashtags=jquery%2Crest&original_referer=http%3A%2F%2Fgithub.com%2F&text=A+jQuery+plugin+for+easy+consumption+of+RESTful+APIs&tw_p=tweetbutton&url=https%3A%2F%2Fgithub.com%2Fjpillora%2Fjquery.rest" target="_blank">
+  <img src="http://jpillora.com/github-twitter-button/img/tweet.png"></img>
+</a>
 
 Summary
 ---
@@ -28,6 +32,7 @@ Features
 * Basic Auth Support
 * Helpful Error Messages
 * Memory Cache
+* Cross-domain Requests with [XDomain](https://github.com/jpillora/xdomain)
 
 Basic Usage
 ---
