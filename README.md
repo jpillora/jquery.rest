@@ -1,6 +1,6 @@
 jQuery REST Client
 =====
-v0.0.5
+v0.0.6
 
 [![githalytics.com alpha](https://cruel-carlota.pagodabox.com/fb83bb834123c2ede226e1931ea6956a "githalytics.com")](http://githalytics.com/jpillora/jquery.rest)
 
@@ -20,9 +20,9 @@ Downloads
 
 *File Size Report*
 ```
-Original: 9933 bytes.
-Minified: 5169 bytes.
-Gzipped:  1178 bytes.
+Original: 10102 bytes.
+Minified: 5293 bytes.
+Gzipped:  1212 bytes.
 ```
 
 Features
@@ -314,7 +314,6 @@ comment.update(42,21,7, {...});
 
 ##### Global/Singleton Example
 ``` javascript
-
 $.client = new $.RestClient('/rest/api/');
 
 // in another file...
@@ -322,6 +321,20 @@ $.client = new $.RestClient('/rest/api/');
 $.client.add('foo');
 ```
 *Note: This is not best practise, use RequireJS, CommonJS or similar !*
+
+##### Method Override Header
+``` javascript
+var client = new $.RestClient('/rest/api/');
+
+client.add('foo');
+client.foo.update(42);
+// PUT /rest/api/foo/42
+
+client.add('bar', { methodOverride: true });
+client.bar.update(42);
+// GET /rest/api/foo/42 
+// with header 'X-HTTP-Method-Override: PUT'
+```
 
 API
 ---
@@ -435,19 +448,9 @@ Issues and pull-requests welcome. To build: `cd *dir*` then `npm install` then `
 Change Log
 ---
 
-v0.0.4
-
-* Simplified API
-
-v0.0.3
-
-* Added into the jQuery Plugin Repo
-
-v0.0.2
-
-* Manually Tested
-
-v0.0.1
-
-* Alpha Version
-
+* v0.0.6 - Added `methodOverride` option
+* v0.0.5 - Minor bug fixes
+* v0.0.4 - Simplified API
+* v0.0.3 - Added into the jQuery Plugin Repo
+* v0.0.2 - Bug fixes
+* v0.0.1 - Beta Version

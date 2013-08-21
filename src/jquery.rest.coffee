@@ -36,6 +36,7 @@ defaultOpts =
   url: ''
   cache: 0
   cachableMethods: ['GET']
+  methodOverride: false
   stringifyData: false
   stripTrailingSlash: false
   password: null
@@ -162,7 +163,7 @@ class Resource
     console.log(s(d)+@name+": " + @url) if @name
     $.each @, (name, fn) ->
       fn.instance.show(d+1) if $.type(fn) is 'function' and fn.instance instanceof Verb and name isnt 'del'
-    $.each @, (name,res) =>
+    $.each @, (name,res) ->
       if name isnt "parent" and name isnt "root" and res instanceof Resource
         res.show(d+1)
     null
@@ -213,6 +214,10 @@ class Resource
     if data and @opts.stringifyData
       data = stringify data
       headers['Content-Type'] = "application/json"
+
+    if @opts.methodOverride
+      headers['X-HTTP-Method-Override'] = method
+      method = 'GET'
 
     if @opts.stripTrailingSlash
       url = url.replace /\/$/, ""

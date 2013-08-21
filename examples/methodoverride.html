@@ -1,0 +1,29 @@
+<html>
+<head>
+  <title>Example</title>
+</head>
+<body>
+
+  jquery.rest.js examples - see console.
+  <!-- jQuery -->
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+
+  <!-- jQuery rest -->
+  <script src="../dist/jquery.rest.js"></script>
+
+  <script>
+    var client = new $.RestClient('/rest/api/');
+
+    client.add('foo');
+    client.foo.update(42);
+    // PUT /rest/api/foo/42
+
+    client.add('bar', { methodOverride: true });
+    client.bar.update(42);
+    // GET /rest/api/foo/42 
+    // with header 'X-HTTP-Method-Override: PUT'
+  </script>
+
+</body>
+</html>
+
