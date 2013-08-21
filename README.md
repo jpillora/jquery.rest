@@ -332,7 +332,7 @@ client.foo.update(42);
 
 client.add('bar', { methodOverride: true });
 client.bar.update(42);
-// GET /rest/api/foo/42 
+// GET /rest/api/bar/42 
 // with header 'X-HTTP-Method-Override: PUT'
 ```
 
@@ -410,11 +410,11 @@ Note: url is not inherited, if it is not set explicitly, the name is used as the
 
 ### stringifyData
 
-When set, will pass all POST data through `JSON.stringify` (polyfill required for IE<=8).
+When `true`, will pass all POST data through `JSON.stringify` (polyfill required for IE<=8).
 
 ### stripTrailingSlash
 
-When set, the trailing slash will be stripped off the URL.
+When `true`, the trailing slash will be stripped off the URL.
 
 ### username and password
 
@@ -425,6 +425,10 @@ When both username and password are set, all ajax requests will add an 'Authoriz
 A [jQuery Ajax](http://api.jquery.com/jQuery.ajax/) Options Object
 
 *Note: Want more options ? Open up a New Feature Issue above.*
+
+### methodOverride
+
+When `true`, all requests will become GET requests and the method used will be instead set as the header: `X-HTTP-Method-Override`. Useful for clients and/or servers that don't support certain HTTP methods.
 
 Conceptual Overview
 ---
@@ -437,7 +441,6 @@ Since each Resource can have it's own set of options, at instantiation time, opt
 Todo
 ---
 * CSRF
-* Method Override Header
 * Add Tests
 * Auto-Cache busting
 
