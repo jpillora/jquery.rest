@@ -1,4 +1,4 @@
-/*! jQuery REST Client - v0.0.6 - 2013-08-24
+/*! jQuery REST Client - v0.0.6 - 2013-08-25
  * https://github.com/jpillora/jquery.rest
  * Copyright (c) 2013 Jaime Pillora; Licensed MIT */
 (function() {
@@ -279,10 +279,10 @@
         t = $.type(arg);
         if (t === 'string' || t === 'number') {
           ids.push(arg);
-        } else if ($.isPlainObject(arg) && data === null) {
+        } else if (t === 'object' && data === null) {
           data = arg;
         } else {
-          error(("Invalid argument: " + arg + " (" + t + ").") + " Must be strings or ints (IDs) followed by one optional plain object (data).");
+          error(("Invalid argument: " + arg + " (" + t + ").") + " Must be strings or ints (IDs) followed by one optional object (data).");
         }
       }
       numIds = ids.length;

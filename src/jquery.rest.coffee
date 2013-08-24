@@ -178,11 +178,11 @@ class Resource
       t = $.type(arg)
       if t is 'string' or t is 'number'
         ids.push(arg)
-      else if $.isPlainObject(arg) and data is null
+      else if t is 'object' and data is null
         data = arg
       else
         error "Invalid argument: #{arg} (#{t})." +
-              " Must be strings or ints (IDs) followed by one optional plain object (data)."
+              " Must be strings or ints (IDs) followed by one optional object (data)."
 
     numIds = ids.length
 

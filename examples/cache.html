@@ -29,7 +29,7 @@
     var n = 0;
     var request = function() {
       var wait = Math.round(Math.random()*1500);
-      console.log("request " + n++ + " wait " + wait + "ms...");
+      console.log("request " + n++ + " in " + wait + "ms...");
       var r = client.data({ request: 42 }).done(result);
       if(n <= 20) 
       setTimeout(request, wait);
