@@ -422,13 +422,13 @@ When both username and password are set, all ajax requests will add an 'Authoriz
 
 ### ajax
 
-A [jQuery Ajax](http://api.jquery.com/jQuery.ajax/) Options Object
-
-*Note: Want more options ? Open up a New Feature Issue above.*
+The [jQuery Ajax](http://api.jquery.com/jQuery.ajax/) Options Object
 
 ### methodOverride
 
-When `true`, all requests will become GET requests and the method used will be instead set as the header: `X-HTTP-Method-Override`. Useful for clients and/or servers that don't support certain HTTP methods.
+When `true`, requests (excluding HEAD and GET) become POST requests and the method chosen will be set as the header: `X-HTTP-Method-Override`. Useful for clients and/or servers that don't support certain HTTP methods.
+
+*Note: Want more options ? Open up a New Feature Issue above.*
 
 Conceptual Overview
 ---

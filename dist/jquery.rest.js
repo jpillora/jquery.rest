@@ -1,4 +1,4 @@
-/*! jQuery REST Client - v0.0.6 - 2013-08-22
+/*! jQuery REST Client - v0.0.6 - 2013-08-24
  * https://github.com/jpillora/jquery.rest
  * Copyright (c) 2013 Jaime Pillora; Licensed MIT */
 (function() {
@@ -334,9 +334,9 @@
         data = stringify(data);
         headers['Content-Type'] = "application/json";
       }
-      if (this.opts.methodOverride) {
+      if (this.opts.methodOverride && (method !== 'GET' && method !== 'HEAD' && method !== 'POST')) {
         headers['X-HTTP-Method-Override'] = method;
-        method = 'GET';
+        method = 'POST';
       }
       if (this.opts.stripTrailingSlash) {
         url = url.replace(/\/$/, "");

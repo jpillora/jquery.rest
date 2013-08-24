@@ -215,9 +215,9 @@ class Resource
       data = stringify data
       headers['Content-Type'] = "application/json"
 
-    if @opts.methodOverride
+    if @opts.methodOverride and method not in ['GET', 'HEAD', 'POST'] 
       headers['X-HTTP-Method-Override'] = method
-      method = 'GET'
+      method = 'POST'
 
     if @opts.stripTrailingSlash
       url = url.replace /\/$/, ""
