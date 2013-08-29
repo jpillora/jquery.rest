@@ -174,6 +174,7 @@ class Resource
   extractUrlData: (name, args) ->
     ids = []
     data = null
+    query = null
     for arg in args
       t = $.type(arg)
       if t is 'string' or t is 'number'

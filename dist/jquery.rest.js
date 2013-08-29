@@ -1,378 +1,377 @@
-/*! jQuery REST Client - v0.0.6 - 2013-08-25
- * https://github.com/jpillora/jquery.rest
- * Copyright (c) 2013 Jaime Pillora; Licensed MIT */
-(function() {
-  'use strict';
-  var Cache, Resource, Verb, defaultOpts, deleteWarning, encode64, error, inheritExtend, s, stringify, validateOpts, validateStr;
+// jQuery REST Client - v0.0.6 - https://github.com/jpillora/jquery.rest
+// Jaime Pillora <dev@jpillora.com> -  Copyright 2013
+(function(window,document,undefined) {
+'use strict';
+var Cache, Resource, Verb, defaultOpts, deleteWarning, encode64, error, inheritExtend, s, stringify, validateOpts, validateStr;
 
-  error = function(msg) {
-    throw "ERROR: jquery.rest: " + msg;
-  };
+error = function(msg) {
+  throw "ERROR: jquery.rest: " + msg;
+};
 
-  s = function(n) {
-    var t;
-    t = "";
-    while (n-- > 0) {
-      t += "  ";
+s = function(n) {
+  var t;
+  t = "";
+  while (n-- > 0) {
+    t += "  ";
+  }
+  return t;
+};
+
+encode64 = function(s) {
+  if (!window.btoa) {
+    error("You need a polyfill for 'btoa' to use basic auth.");
+  }
+  return window.btoa(s);
+};
+
+stringify = function(obj) {
+  if (!window.JSON) {
+    error("You need a polyfill for 'JSON' to use stringify.");
+  }
+  return window.JSON.stringify(obj);
+};
+
+inheritExtend = function(a, b) {
+  var F;
+  F = function() {};
+  F.prototype = a;
+  return $.extend(true, new F(), b);
+};
+
+validateOpts = function(options) {
+  if (!(options && $.isPlainObject(options))) {
+    return false;
+  }
+  $.each(options, function(name) {
+    if (defaultOpts[name] === undefined) {
+      return error("Unknown option: '" + name + "'");
     }
-    return t;
+  });
+  return null;
+};
+
+validateStr = function(name, str) {
+  if ('string' !== $.type(str)) {
+    return error("'" + name + "' must be a string");
+  }
+};
+
+deleteWarning = function() {
+  return alert('"delete()" has been deprecated. Please use "destroy()" or "del()" instead.');
+};
+
+defaultOpts = {
+  url: '',
+  cache: 0,
+  cachableMethods: ['GET'],
+  methodOverride: false,
+  stringifyData: false,
+  stripTrailingSlash: false,
+  password: null,
+  username: null,
+  verbs: {
+    'create': 'POST',
+    'read': 'GET',
+    'update': 'PUT',
+    'destroy': 'DELETE'
+  },
+  ajax: {
+    dataType: 'json'
+  }
+};
+
+Cache = (function() {
+  function Cache(parent) {
+    this.parent = parent;
+    this.c = {};
+  }
+
+  Cache.prototype.valid = function(date) {
+    var diff;
+    diff = new Date().getTime() - date.getTime();
+    return diff <= this.parent.opts.cache * 1000;
   };
 
-  encode64 = function(s) {
-    if (!window.btoa) {
-      error("You need a polyfill for 'btoa' to use basic auth.");
+  Cache.prototype.key = function(obj) {
+    var key,
+      _this = this;
+    key = "";
+    $.each(obj, function(k, v) {
+      return key += k + "=" + ($.isPlainObject(v) ? "{" + _this.key(v) + "}" : v) + "|";
+    });
+    return key;
+  };
+
+  Cache.prototype.get = function(key) {
+    var result;
+    result = this.c[key];
+    if (!result) {
+      return;
     }
-    return window.btoa(s);
-  };
-
-  stringify = function(obj) {
-    if (!window.JSON) {
-      error("You need a polyfill for 'JSON' to use stringify.");
+    if (this.valid(result.created)) {
+      return result.data;
     }
-    return window.JSON.stringify(obj);
   };
 
-  inheritExtend = function(a, b) {
-    var F;
-    F = function() {};
-    F.prototype = a;
-    return $.extend(true, new F(), b);
+  Cache.prototype.put = function(key, data) {
+    return this.c[key] = {
+      created: new Date(),
+      data: data
+    };
   };
 
-  validateOpts = function(options) {
-    if (!(options && $.isPlainObject(options))) {
-      return false;
+  Cache.prototype.clear = function(regexp) {
+    var _this = this;
+    if (regexp) {
+      return $.each(this.c, function(k) {
+        if (k.match(regexp)) {
+          return delete _this.c[k];
+        }
+      });
+    } else {
+      return this.c = {};
     }
-    $.each(options, function(name) {
-      if (defaultOpts[name] === undefined) {
-        return error("Unknown option: '" + name + "'");
+  };
+
+  return Cache;
+
+})();
+
+Verb = (function() {
+  function Verb(name, method, options, parent) {
+    this.name = name;
+    this.method = method;
+    if (options == null) {
+      options = {};
+    }
+    this.parent = parent;
+    validateStr('name', this.name);
+    validateStr('method', this.method);
+    validateOpts(options);
+    if (this.parent[this.name]) {
+      error("Cannot add Verb: '" + name + "' already exists");
+    }
+    this.method = method.toUpperCase();
+    if (!options.url) {
+      options.url = '';
+    }
+    this.opts = inheritExtend(this.parent.opts, options);
+    this.root = this.parent.root;
+    this.custom = !defaultOpts.verbs[this.name];
+    this.call = $.proxy(this.call, this);
+    this.call.instance = this;
+  }
+
+  Verb.prototype.call = function() {
+    var r;
+    r = this.parent.extractUrlData(this.method, arguments);
+    if (this.custom) {
+      r.url += this.opts.url || this.name;
+    }
+    return this.parent.ajax.call(this, this.method, r.url, r.data);
+  };
+
+  Verb.prototype.show = function(d) {
+    return console.log(s(d) + this.name + ": " + this.method);
+  };
+
+  return Verb;
+
+})();
+
+Resource = (function() {
+  function Resource(nameOrUrl, options, parent) {
+    if (options == null) {
+      options = {};
+    }
+    validateOpts(options);
+    if (parent && parent instanceof Resource) {
+      this.name = nameOrUrl;
+      validateStr('name', this.name);
+      this.constructChild(parent, options);
+    } else {
+      this.url = nameOrUrl || '';
+      validateStr('url', this.url);
+      this.constructRoot(options);
+    }
+  }
+
+  Resource.prototype.constructRoot = function(options) {
+    this.opts = inheritExtend(defaultOpts, options);
+    this.root = this;
+    this.numParents = 0;
+    this.urlNoId = this.url;
+    this.cache = new Cache(this);
+    this.parent = null;
+    return this.name = this.opts.name || 'ROOT';
+  };
+
+  Resource.prototype.constructChild = function(parent, options) {
+    this.parent = parent;
+    validateStr('name', this.name);
+    if (!(this.parent instanceof Resource)) {
+      this.error("Invalid parent");
+    }
+    if (this.parent[this.name]) {
+      this.error("'" + name + "' already exists");
+    }
+    if (!options.url) {
+      options.url = '';
+    }
+    this.opts = inheritExtend(this.parent.opts, options);
+    this.root = this.parent.root;
+    this.numParents = this.parent.numParents + 1;
+    this.urlNoId = this.parent.url + ("" + (this.opts.url || this.name) + "/");
+    this.url = this.urlNoId + (":ID_" + this.numParents + "/");
+    $.each(this.opts.verbs, $.proxy(this.addVerb, this));
+    if (this.destroy) {
+      this.del = this.destroy;
+      return this["delete"] = deleteWarning;
+    }
+  };
+
+  Resource.prototype.error = function(msg) {
+    return error("Cannot add Resource: " + msg);
+  };
+
+  Resource.prototype.add = function(name, options) {
+    return this[name] = new Resource(name, options, this);
+  };
+
+  Resource.prototype.addVerb = function(name, method, options) {
+    return this[name] = new Verb(name, method, options, this).call;
+  };
+
+  Resource.prototype.show = function(d) {
+    if (d == null) {
+      d = 0;
+    }
+    if (d > 25) {
+      error("Plugin Bug! Recursion Fail");
+    }
+    if (this.name) {
+      console.log(s(d) + this.name + ": " + this.url);
+    }
+    $.each(this, function(name, fn) {
+      if ($.type(fn) === 'function' && fn.instance instanceof Verb && name !== 'del') {
+        return fn.instance.show(d + 1);
+      }
+    });
+    $.each(this, function(name, res) {
+      if (name !== "parent" && name !== "root" && res instanceof Resource) {
+        return res.show(d + 1);
       }
     });
     return null;
   };
 
-  validateStr = function(name, str) {
-    if ('string' !== $.type(str)) {
-      return error("'" + name + "' must be a string");
-    }
+  Resource.prototype.toString = function() {
+    return this.name;
   };
 
-  deleteWarning = function() {
-    return alert('"delete()" has been deprecated. Please use "destroy()" or "del()" instead.');
-  };
-
-  defaultOpts = {
-    url: '',
-    cache: 0,
-    cachableMethods: ['GET'],
-    methodOverride: false,
-    stringifyData: false,
-    stripTrailingSlash: false,
-    password: null,
-    username: null,
-    verbs: {
-      'create': 'POST',
-      'read': 'GET',
-      'update': 'PUT',
-      'destroy': 'DELETE'
-    },
-    ajax: {
-      dataType: 'json'
-    }
-  };
-
-  Cache = (function() {
-    function Cache(parent) {
-      this.parent = parent;
-      this.c = {};
-    }
-
-    Cache.prototype.valid = function(date) {
-      var diff;
-      diff = new Date().getTime() - date.getTime();
-      return diff <= this.parent.opts.cache * 1000;
-    };
-
-    Cache.prototype.key = function(obj) {
-      var key,
-        _this = this;
-      key = "";
-      $.each(obj, function(k, v) {
-        return key += k + "=" + ($.isPlainObject(v) ? "{" + _this.key(v) + "}" : v) + "|";
-      });
-      return key;
-    };
-
-    Cache.prototype.get = function(key) {
-      var result;
-      result = this.c[key];
-      if (!result) {
-        return;
-      }
-      if (this.valid(result.created)) {
-        return result.data;
-      }
-    };
-
-    Cache.prototype.put = function(key, data) {
-      return this.c[key] = {
-        created: new Date(),
-        data: data
-      };
-    };
-
-    Cache.prototype.clear = function(regexp) {
-      var _this = this;
-      if (regexp) {
-        return $.each(this.c, function(k) {
-          if (k.match(regexp)) {
-            return delete _this.c[k];
-          }
-        });
+  Resource.prototype.extractUrlData = function(name, args) {
+    var arg, canUrl, canUrlNoId, data, i, id, ids, msg, numIds, query, t, url, _i, _j, _len, _len1;
+    ids = [];
+    data = null;
+    query = null;
+    for (_i = 0, _len = args.length; _i < _len; _i++) {
+      arg = args[_i];
+      t = $.type(arg);
+      if (t === 'string' || t === 'number') {
+        ids.push(arg);
+      } else if (t === 'object' && data === null) {
+        data = arg;
       } else {
-        return this.c = {};
-      }
-    };
-
-    return Cache;
-
-  })();
-
-  Verb = (function() {
-    function Verb(name, method, options, parent) {
-      this.name = name;
-      this.method = method;
-      if (options == null) {
-        options = {};
-      }
-      this.parent = parent;
-      validateStr('name', this.name);
-      validateStr('method', this.method);
-      validateOpts(options);
-      if (this.parent[this.name]) {
-        error("Cannot add Verb: '" + name + "' already exists");
-      }
-      this.method = method.toUpperCase();
-      if (!options.url) {
-        options.url = '';
-      }
-      this.opts = inheritExtend(this.parent.opts, options);
-      this.root = this.parent.root;
-      this.custom = !defaultOpts.verbs[this.name];
-      this.call = $.proxy(this.call, this);
-      this.call.instance = this;
-    }
-
-    Verb.prototype.call = function() {
-      var r;
-      r = this.parent.extractUrlData(this.method, arguments);
-      if (this.custom) {
-        r.url += this.opts.url || this.name;
-      }
-      return this.parent.ajax.call(this, this.method, r.url, r.data);
-    };
-
-    Verb.prototype.show = function(d) {
-      return console.log(s(d) + this.name + ": " + this.method);
-    };
-
-    return Verb;
-
-  })();
-
-  Resource = (function() {
-    function Resource(nameOrUrl, options, parent) {
-      if (options == null) {
-        options = {};
-      }
-      validateOpts(options);
-      if (parent && parent instanceof Resource) {
-        this.name = nameOrUrl;
-        validateStr('name', this.name);
-        this.constructChild(parent, options);
-      } else {
-        this.url = nameOrUrl || '';
-        validateStr('url', this.url);
-        this.constructRoot(options);
+        error(("Invalid argument: " + arg + " (" + t + ").") + " Must be strings or ints (IDs) followed by one optional object (data).");
       }
     }
-
-    Resource.prototype.constructRoot = function(options) {
-      this.opts = inheritExtend(defaultOpts, options);
-      this.root = this;
-      this.numParents = 0;
-      this.urlNoId = this.url;
-      this.cache = new Cache(this);
-      this.parent = null;
-      return this.name = this.opts.name || 'ROOT';
+    numIds = ids.length;
+    canUrl = name !== 'create';
+    canUrlNoId = name !== 'update' && name !== 'delete';
+    url = null;
+    if (canUrl && numIds === this.numParents) {
+      url = this.url;
+    }
+    if (canUrlNoId && numIds === this.numParents - 1) {
+      url = this.urlNoId;
+    }
+    if (url === null) {
+      if (canUrlNoId) {
+        msg = this.numParents - 1;
+      }
+      if (canUrl) {
+        msg = (msg ? msg + ' or ' : '') + this.numParents;
+      }
+      error("Invalid number of ID arguments, required " + msg + ", provided " + numIds);
+    }
+    for (i = _j = 0, _len1 = ids.length; _j < _len1; i = ++_j) {
+      id = ids[i];
+      url = url.replace(new RegExp("\/:ID_" + (i + 1) + "\/"), "/" + id + "/");
+    }
+    return {
+      url: url,
+      data: data
     };
+  };
 
-    Resource.prototype.constructChild = function(parent, options) {
-      this.parent = parent;
-      validateStr('name', this.name);
-      if (!(this.parent instanceof Resource)) {
-        this.error("Invalid parent");
-      }
-      if (this.parent[this.name]) {
-        this.error("'" + name + "' already exists");
-      }
-      if (!options.url) {
-        options.url = '';
-      }
-      this.opts = inheritExtend(this.parent.opts, options);
-      this.root = this.parent.root;
-      this.numParents = this.parent.numParents + 1;
-      this.urlNoId = this.parent.url + ("" + (this.opts.url || this.name) + "/");
-      this.url = this.urlNoId + (":ID_" + this.numParents + "/");
-      $.each(this.opts.verbs, $.proxy(this.addVerb, this));
-      if (this.destroy) {
-        this.del = this.destroy;
-        return this["delete"] = deleteWarning;
-      }
+  Resource.prototype.ajax = function(method, url, data, headers) {
+    var ajaxOpts, encoded, key, req, useCache,
+      _this = this;
+    if (headers == null) {
+      headers = {};
+    }
+    if (!method) {
+      error("method missing");
+    }
+    if (!url) {
+      error("url missing");
+    }
+    if (this.opts.username && this.opts.password) {
+      encoded = encode64(this.opts.username + ":" + this.opts.password);
+      headers.Authorization = "Basic " + encoded;
+    }
+    if (data && this.opts.stringifyData) {
+      data = stringify(data);
+      headers['Content-Type'] = "application/json";
+    }
+    if (this.opts.methodOverride && (method !== 'GET' && method !== 'HEAD' && method !== 'POST')) {
+      headers['X-HTTP-Method-Override'] = method;
+      method = 'POST';
+    }
+    if (this.opts.stripTrailingSlash) {
+      url = url.replace(/\/$/, "");
+    }
+    ajaxOpts = {
+      url: url,
+      type: method,
+      headers: headers
     };
-
-    Resource.prototype.error = function(msg) {
-      return error("Cannot add Resource: " + msg);
-    };
-
-    Resource.prototype.add = function(name, options) {
-      return this[name] = new Resource(name, options, this);
-    };
-
-    Resource.prototype.addVerb = function(name, method, options) {
-      return this[name] = new Verb(name, method, options, this).call;
-    };
-
-    Resource.prototype.show = function(d) {
-      if (d == null) {
-        d = 0;
+    if (data) {
+      ajaxOpts.data = data;
+    }
+    ajaxOpts = $.extend(true, {}, this.opts.ajax, ajaxOpts);
+    useCache = this.opts.cache && $.inArray(method, this.opts.cachableMethods) >= 0;
+    if (useCache) {
+      key = this.root.cache.key(ajaxOpts);
+      req = this.root.cache.get(key);
+      if (req) {
+        return req;
       }
-      if (d > 25) {
-        error("Plugin Bug! Recursion Fail");
-      }
-      if (this.name) {
-        console.log(s(d) + this.name + ": " + this.url);
-      }
-      $.each(this, function(name, fn) {
-        if ($.type(fn) === 'function' && fn.instance instanceof Verb && name !== 'del') {
-          return fn.instance.show(d + 1);
-        }
+    }
+    req = $.ajax(ajaxOpts);
+    if (useCache) {
+      req.done(function() {
+        return _this.root.cache.put(key, req);
       });
-      $.each(this, function(name, res) {
-        if (name !== "parent" && name !== "root" && res instanceof Resource) {
-          return res.show(d + 1);
-        }
-      });
-      return null;
-    };
+    }
+    return req;
+  };
 
-    Resource.prototype.toString = function() {
-      return this.name;
-    };
+  return Resource;
 
-    Resource.prototype.extractUrlData = function(name, args) {
-      var arg, canUrl, canUrlNoId, data, i, id, ids, msg, numIds, t, url, _i, _j, _len, _len1;
-      ids = [];
-      data = null;
-      for (_i = 0, _len = args.length; _i < _len; _i++) {
-        arg = args[_i];
-        t = $.type(arg);
-        if (t === 'string' || t === 'number') {
-          ids.push(arg);
-        } else if (t === 'object' && data === null) {
-          data = arg;
-        } else {
-          error(("Invalid argument: " + arg + " (" + t + ").") + " Must be strings or ints (IDs) followed by one optional object (data).");
-        }
-      }
-      numIds = ids.length;
-      canUrl = name !== 'create';
-      canUrlNoId = name !== 'update' && name !== 'delete';
-      url = null;
-      if (canUrl && numIds === this.numParents) {
-        url = this.url;
-      }
-      if (canUrlNoId && numIds === this.numParents - 1) {
-        url = this.urlNoId;
-      }
-      if (url === null) {
-        if (canUrlNoId) {
-          msg = this.numParents - 1;
-        }
-        if (canUrl) {
-          msg = (msg ? msg + ' or ' : '') + this.numParents;
-        }
-        error("Invalid number of ID arguments, required " + msg + ", provided " + numIds);
-      }
-      for (i = _j = 0, _len1 = ids.length; _j < _len1; i = ++_j) {
-        id = ids[i];
-        url = url.replace(new RegExp("\/:ID_" + (i + 1) + "\/"), "/" + id + "/");
-      }
-      return {
-        url: url,
-        data: data
-      };
-    };
+})();
 
-    Resource.prototype.ajax = function(method, url, data, headers) {
-      var ajaxOpts, encoded, key, req, useCache,
-        _this = this;
-      if (headers == null) {
-        headers = {};
-      }
-      if (!method) {
-        error("method missing");
-      }
-      if (!url) {
-        error("url missing");
-      }
-      if (this.opts.username && this.opts.password) {
-        encoded = encode64(this.opts.username + ":" + this.opts.password);
-        headers.Authorization = "Basic " + encoded;
-      }
-      if (data && this.opts.stringifyData) {
-        data = stringify(data);
-        headers['Content-Type'] = "application/json";
-      }
-      if (this.opts.methodOverride && (method !== 'GET' && method !== 'HEAD' && method !== 'POST')) {
-        headers['X-HTTP-Method-Override'] = method;
-        method = 'POST';
-      }
-      if (this.opts.stripTrailingSlash) {
-        url = url.replace(/\/$/, "");
-      }
-      ajaxOpts = {
-        url: url,
-        type: method,
-        headers: headers
-      };
-      if (data) {
-        ajaxOpts.data = data;
-      }
-      ajaxOpts = $.extend(true, {}, this.opts.ajax, ajaxOpts);
-      useCache = this.opts.cache && $.inArray(method, this.opts.cachableMethods) >= 0;
-      if (useCache) {
-        key = this.root.cache.key(ajaxOpts);
-        req = this.root.cache.get(key);
-        if (req) {
-          return req;
-        }
-      }
-      req = $.ajax(ajaxOpts);
-      if (useCache) {
-        req.done(function() {
-          return _this.root.cache.put(key, req);
-        });
-      }
-      return req;
-    };
+Resource.defaults = defaultOpts;
 
-    return Resource;
-
-  })();
-
-  Resource.defaults = defaultOpts;
-
-  $.RestClient = Resource;
-
-}).call(this);
+$.RestClient = Resource;
+}(window,document));

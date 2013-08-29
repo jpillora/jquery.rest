@@ -1,27 +1,22 @@
 {
-  "name": "rest",
+  "name": "jquery.rest",
   "version": "0.0.6",
   "title": "jQuery REST Client",
-  "description": "A jQuery plugin for easy consumption of REST APIs.",
+  "description": "A jQuery plugin for easy consumption of REST APIs",
   "author": {
-    "name": "Jaime Pillora"
+    "name": "Jaime Pillora <dev@jpillora.com>"
   },
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "http://opensource.org/licenses/MIT"
-    }
-  ],
+  "license": "MIT",
   "keywords": [
     "rest",
     "client",
     "ajax"
   ],
-  "bugs": "https://github.com/jpillora/jquery.rest/issues",
   "homepage": "https://github.com/jpillora/jquery.rest",
-  "docs": "https://github.com/jpillora/jquery.rest#jquery-rest-client",
-  "download": "https://github.com/jpillora/jquery.rest#downloads",
+  "bugs": "https://github.com/jpillora/jquery.rest/issues",
+  "docs": "https://github.com/jpillora/jquery.rest",
+  "download": "https://github.com/jpillora/jquery.rest",
   "dependencies": {
-    "jquery": ">=1.5"
+    "jquery": ">=1.6"
   }
 }
