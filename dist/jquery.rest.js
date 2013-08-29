@@ -1,4 +1,4 @@
-// jQuery REST Client - v0.0.6 - https://github.com/jpillora/jquery.rest
+// jQuery REST Client - v0.0.7 - https://github.com/jpillora/jquery.rest
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2013
 (function(window,document,$,undefined) {
 'use strict';

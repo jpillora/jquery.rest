@@ -20,9 +20,9 @@ Downloads
 
 *File Size Report*
 ```
-Original: 10102 bytes.
-Minified: 5293 bytes.
-Gzipped:  1212 bytes.
+Original: 9715 bytes.
+Minified: 5399 bytes.
+Gzipped:  1247 bytes.
 ```
 
 Features

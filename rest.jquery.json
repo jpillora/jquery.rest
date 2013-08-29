@@ -1,6 +1,6 @@
 {
   "name": "jquery.rest",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "title": "jQuery REST Client",
   "description": "A jQuery plugin for easy consumption of REST APIs",
   "author": {
