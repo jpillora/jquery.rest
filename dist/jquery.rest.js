@@ -1,6 +1,6 @@
 // jQuery REST Client - v0.0.6 - https://github.com/jpillora/jquery.rest
-// Jaime Pillora <dev@jpillora.com> -  Copyright 2013
-(function(window,document,undefined) {
+// Jaime Pillora <dev@jpillora.com> - MIT Copyright 2013
+(function(window,document,$,undefined) {
 'use strict';
 var Cache, Resource, Verb, defaultOpts, deleteWarning, encode64, error, inheritExtend, s, stringify, validateOpts, validateStr;
 
@@ -163,12 +163,12 @@ Verb = (function() {
   }
 
   Verb.prototype.call = function() {
-    var r;
-    r = this.parent.extractUrlData(this.method, arguments);
+    var data, url, _ref;
+    _ref = this.parent.extractUrlData(this.method, arguments), url = _ref.url, data = _ref.data;
     if (this.custom) {
-      r.url += this.opts.url || this.name;
+      url += this.opts.url || this.name;
     }
-    return this.parent.ajax.call(this, this.method, r.url, r.data);
+    return this.parent.ajax.call(this, this.method, url, data);
   };
 
   Verb.prototype.show = function(d) {
@@ -270,10 +270,10 @@ Resource = (function() {
   };
 
   Resource.prototype.extractUrlData = function(name, args) {
-    var arg, canUrl, canUrlNoId, data, i, id, ids, msg, numIds, query, t, url, _i, _j, _len, _len1;
+    var arg, canUrl, canUrlNoId, data, i, id, ids, msg, numIds, params, t, url, _i, _j, _len, _len1;
     ids = [];
     data = null;
-    query = null;
+    params = null;
     for (_i = 0, _len = args.length; _i < _len; _i++) {
       arg = args[_i];
       t = $.type(arg);
@@ -281,8 +281,10 @@ Resource = (function() {
         ids.push(arg);
       } else if (t === 'object' && data === null) {
         data = arg;
+      } else if (t === 'object' && params === null) {
+        params = arg;
       } else {
-        error(("Invalid argument: " + arg + " (" + t + ").") + " Must be strings or ints (IDs) followed by one optional object (data).");
+        error(("Invalid argument: " + arg + " (" + t + ").") + " Must be strings or ints (IDs) followed by one optional object and one optional query params object.");
       }
     }
     numIds = ids.length;
@@ -308,24 +310,25 @@ Resource = (function() {
       id = ids[i];
       url = url.replace(new RegExp("\/:ID_" + (i + 1) + "\/"), "/" + id + "/");
     }
+    if (params) {
+      url += "?" + ($.param(params));
+    }
     return {
       url: url,
       data: data
     };
   };
 
-  Resource.prototype.ajax = function(method, url, data, headers) {
-    var ajaxOpts, encoded, key, req, useCache,
+  Resource.prototype.ajax = function(method, url, data) {
+    var ajaxOpts, encoded, headers, key, req, useCache,
       _this = this;
-    if (headers == null) {
-      headers = {};
-    }
     if (!method) {
       error("method missing");
     }
     if (!url) {
       error("url missing");
     }
+    headers = {};
     if (this.opts.username && this.opts.password) {
       encoded = encode64(this.opts.username + ":" + this.opts.password);
       headers.Authorization = "Basic " + encoded;
@@ -374,4 +377,4 @@ Resource = (function() {
 Resource.defaults = defaultOpts;
 
 $.RestClient = Resource;
-}(window,document));
+}(window,document,jQuery));

@@ -100,9 +100,9 @@ class Verb
 
   call: ->
     #will execute in the context of the parent resource
-    r = @parent.extractUrlData @method, arguments
-    r.url += @opts.url or @name if @custom
-    @parent.ajax.call @, @method, r.url, r.data
+    {url,data} = @parent.extractUrlData @method, arguments
+    url += @opts.url or @name if @custom
+    @parent.ajax.call @, @method, url, data
 
   show: (d) ->
     console.log s(d) + @name + ": " + @method
@@ -174,16 +174,18 @@ class Resource
   extractUrlData: (name, args) ->
     ids = []
     data = null
-    query = null
+    params = null
     for arg in args
       t = $.type(arg)
       if t is 'string' or t is 'number'
         ids.push(arg)
       else if t is 'object' and data is null
         data = arg
+      else if t is 'object' and params is null
+        params = arg
       else
         error "Invalid argument: #{arg} (#{t})." +
-              " Must be strings or ints (IDs) followed by one optional object (data)."
+              " Must be strings or ints (IDs) followed by one optional object and one optional query params object."
 
     numIds = ids.length
 
@@ -202,11 +204,14 @@ class Resource
     for id, i in ids
       url = url.replace new RegExp("\/:ID_#{i+1}\/"), "/#{id}/"
 
+    url += "?#{$.param params}" if params
+
     {url, data}
 
-  ajax: (method, url, data, headers = {})->
+  ajax: (method, url, data) ->
     error "method missing"  unless method
     error "url missing"  unless url
+    headers = {}
     # console.log method, url, data
     if @opts.username and @opts.password
       encoded = encode64 @opts.username + ":" + @opts.password

@@ -1,0 +1,30 @@
+<html>
+<head>
+  <title>Example</title>
+</head>
+<body>
+
+  jquery.rest.js examples - see console.
+  <!-- jQuery -->
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+
+  <!-- jQuery rest -->
+  <script src="../dist/jquery.rest.js"></script>
+
+  <script>
+
+    var client = new $.RestClient('/rest/api/');
+
+    client.add('foo');
+
+    client.foo.read();
+    client.foo.read({ a:1 });
+    client.foo.create({ a:1 });
+    client.foo.create({ a:1 }, { b:2 });
+    client.foo.read({ a:1 }, { b:2 });
+
+  </script>
+
+</body>
+</html>
+

@@ -253,10 +253,17 @@ var client = new $.RestClient('/rest/api/');
 
 client.add('foo');
 
-client.read({bar:42});
-// GET /rest/api/foo?bar=42
+client.foo.read({bar:42});
+// GET /rest/api/foo/?bar=42
+
+client.foo.create({ data:7 }, { bar:42 });
+// POST /rest/api/foo/?bar=42 with body 'data=7'
+
+client.foo.read({ data:7 }, { bar:42 });
+// GET has no body!
+// GET /rest/api/foo/?bar=42&data=7
 ```
-*Note: Convience option for query parameters when POSTing is in progress*
+
 
 ##### Show API Example
 ``` javascript
@@ -328,11 +335,11 @@ var client = new $.RestClient('/rest/api/');
 
 client.add('foo');
 client.foo.update(42);
-// PUT /rest/api/foo/42
+// PUT /rest/api/foo/42/
 
 client.add('bar', { methodOverride: true });
 client.bar.update(42);
-// GET /rest/api/bar/42 
+// GET /rest/api/bar/42/
 // with header 'X-HTTP-Method-Override: PUT'
 ```
 
@@ -359,13 +366,15 @@ Instaniates a new Verb function property on the `client`.
 
 Note: `name` is used as the `url` if `options.url` is not set.
 
-#### `client`.`verb`( [`id1`], ..., [`idN`], [`data`])
+#### `client`.`verb`( [`id1`], ..., [`idN`], [`data`], [`params`])
 
 All verbs use this signature. Internally, they are all *essentially* calls to `$.ajax` with custom options depending on the parent `client` and `options`.
 
 `id`s must be a string or number.
 
 `data` is a [jQuery Ajax](http://api.jquery.com/jQuery.ajax/) Options Object's data property. If `ajax.data` is set on the `client` this `data` will extend it.
+
+`params` query parameters to be appended to the url
 
 Note: A helpful error will be thrown if invalid arguments are used.
 
