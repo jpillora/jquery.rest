@@ -63,6 +63,9 @@ deleteWarning = function() {
 defaultOpts = {
   url: '',
   cache: 0,
+  request: function(resource, options) {
+    return $.ajax(options);
+  },
   cachableMethods: ['GET'],
   methodOverride: false,
   stringifyData: false,
@@ -361,7 +364,7 @@ Resource = (function() {
         return req;
       }
     }
-    req = $.ajax(ajaxOpts);
+    req = this.opts.request(this.parent, ajaxOpts);
     if (useCache) {
       req.done(function() {
         return _this.root.cache.put(key, req);

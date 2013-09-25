@@ -31,14 +31,11 @@ validateStr = (name, str) ->
 deleteWarning = ->
   alert '"delete()" has been deprecated. Please use "destroy()" or "del()" instead.'
 
-request = (resource, options) ->
-  return $.ajax(options)
-
 #defaults
 defaultOpts =
   url: ''
   cache: 0
-  request: request
+  request: (resource, options) -> $.ajax(options)
   cachableMethods: ['GET']
   methodOverride: false
   stringifyData: false
