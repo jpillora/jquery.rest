@@ -31,10 +31,14 @@ validateStr = (name, str) ->
 deleteWarning = ->
   alert '"delete()" has been deprecated. Please use "destroy()" or "del()" instead.'
 
+request = (resource, options) ->
+  return $.ajax(options)
+
 #defaults
 defaultOpts =
   url: ''
   cache: 0
+  request: request
   cachableMethods: ['GET']
   methodOverride: false
   stringifyData: false
@@ -221,7 +225,7 @@ class Resource
       data = stringify data
       headers['Content-Type'] = "application/json"
 
-    if @opts.methodOverride and method not in ['GET', 'HEAD', 'POST'] 
+    if @opts.methodOverride and method not in ['GET', 'HEAD', 'POST']
       headers['X-HTTP-Method-Override'] = method
       method = 'POST'
 
@@ -240,7 +244,7 @@ class Resource
       req = @root.cache.get key
       return req if req
 
-    req = $.ajax ajaxOpts
+    req = @opts.request @parent, ajaxOpts
 
     if useCache
       req.done => @root.cache.put key, req
