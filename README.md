@@ -1,6 +1,6 @@
 jQuery REST Client
 =====
-v0.0.6
+v0.0.7
 
 [![githalytics.com alpha](https://cruel-carlota.pagodabox.com/fb83bb834123c2ede226e1931ea6956a "githalytics.com")](http://githalytics.com/jpillora/jquery.rest)
 
@@ -436,6 +436,16 @@ The [jQuery Ajax](http://api.jquery.com/jQuery.ajax/) Options Object
 ### methodOverride
 
 When `true`, requests (excluding HEAD and GET) become POST requests and the method chosen will be set as the header: `X-HTTP-Method-Override`. Useful for clients and/or servers that don't support certain HTTP methods.
+
+### request
+
+The function used to perform the request. By default, it is:
+
+``` js
+request: function(resource, options) {
+  return $.ajax(options);
+}
+```
 
 *Note: Want more options ? Open up a New Feature Issue above.*
 
