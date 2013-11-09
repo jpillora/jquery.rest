@@ -36,6 +36,7 @@ defaultOpts =
   url: ''
   cache: 0
   request: (resource, options) -> $.ajax(options)
+  isSingle: false
   cachableMethods: ['GET']
   methodOverride: false
   stringifyData: false
@@ -142,7 +143,8 @@ class Resource
     @root = @parent.root
     @numParents = @parent.numParents + 1
     @urlNoId = @parent.url + "#{@opts.url || @name}/"
-    @url = @urlNoId + ":ID_#{@numParents}/"
+    @url = @urlNoId
+    @url += ":ID_#{@numParents}/" unless @opts.isSingle
 
     #add all verbs defined for this resource
     $.each @opts.verbs, $.proxy @addVerb, @
@@ -195,7 +197,7 @@ class Resource
 
     url = null
     url = @url if canUrl and numIds is @numParents
-    url = @urlNoId if canUrlNoId and numIds is @numParents - 1
+    url = @urlNoId if canUrlNoId and numIds is @numParents - 1 || @parent.opts.isSingle
 
     if url is null
       msg = (@numParents - 1) if canUrlNoId
