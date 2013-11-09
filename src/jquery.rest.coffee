@@ -36,6 +36,7 @@ defaultOpts =
   url: ''
   cache: 0
   request: (resource, options) -> $.ajax(options)
+  autoCleanCache: false,
   cachableMethods: ['GET']
   methodOverride: false
   stringifyData: false
@@ -240,6 +241,10 @@ class Resource
       key = @root.cache.key ajaxOpts
       req = @root.cache.get key
       return req if req
+
+    if @opts.cache && @opts.autoCleanCache && $.inArray(method, @opts.cachableMethods) is -1
+      escapedUrl = url.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1")
+      @root.cache.clear(new RegExp(escapedUrl))
 
     req = @opts.request @parent, ajaxOpts
 
