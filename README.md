@@ -447,6 +447,12 @@ request: function(resource, options) {
 }
 ```
 
+### autoCleanCache
+
+When `true`, all cache for resource is automatically removed when `PUT`, `POST` or `DELETE` request is sent.
+By default: `false`.
+
+
 *Note: Want more options ? Open up a New Feature Issue above.*
 
 Conceptual Overview
