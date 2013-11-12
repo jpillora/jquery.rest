@@ -126,7 +126,7 @@ class Resource
   constructRoot: (options) ->
     @opts = inheritExtend defaultOpts, options
     @root = @
-    @numParents = 0
+    @expectedIds = 0
     @urlNoId = @url
 
     @cache = new Cache @
@@ -141,10 +141,13 @@ class Resource
     options.url = '' unless options.url
     @opts = inheritExtend @parent.opts, options
     @root = @parent.root
-    @numParents = @parent.numParents + 1
     @urlNoId = @parent.url + "#{@opts.url || @name}/"
     @url = @urlNoId
-    @url += ":ID_#{@numParents}/" unless @opts.isSingle
+    @expectedIds = @parent.expectedIds
+
+    unless @opts.isSingle
+      @expectedIds += 1
+      @url += ":ID_#{@expectedIds}/"
 
     #add all verbs defined for this resource
     $.each @opts.verbs, $.proxy @addVerb, @
@@ -190,19 +193,19 @@ class Resource
         error "Invalid argument: #{arg} (#{t})." +
               " Must be strings or ints (IDs) followed by one optional object and one optional query params object."
 
-    numIds = ids.length
+    providedIds = ids.length
 
     canUrl = name isnt 'create'
     canUrlNoId = name isnt 'update' and name isnt 'delete'
 
     url = null
-    url = @url if canUrl and numIds is @numParents
-    url = @urlNoId if canUrlNoId and numIds is @numParents - 1 || @parent.opts.isSingle
+    url = @url if canUrl and providedIds is @expectedIds
+    url = @urlNoId if canUrlNoId and providedIds is @expectedIds - 1
 
     if url is null
-      msg = (@numParents - 1) if canUrlNoId
-      msg = ((if msg then msg+' or ' else '') + @numParents) if canUrl
-      error "Invalid number of ID arguments, required #{msg}, provided #{numIds}"
+      msg = (@expectedIds - 1) if canUrlNoId
+      msg = ((if msg then msg+' or ' else '') + @expectedIds) if canUrl
+      error "Invalid number of ID arguments, required #{msg}, provided #{providedIds}"
 
     for id, i in ids
       url = url.replace new RegExp("\/:ID_#{i+1}\/"), "/#{id}/"
