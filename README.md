@@ -447,6 +447,14 @@ request: function(resource, options) {
 }
 ```
 
+### isSignle
+
+When `true`, resource is perceived as singleton:
+
+``` js
+schema.add('session', { isSingle: true });
+```
+
 *Note: Want more options ? Open up a New Feature Issue above.*
 
 Conceptual Overview
