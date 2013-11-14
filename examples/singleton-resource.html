@@ -12,12 +12,15 @@
   <script src="../dist/1/jquery.rest.js"></script>
 
   <script>
-
     var client = new $.RestClient('/rest/api/');
 
     client.add('foo');
+    client.foo.add('bar', { isSingle: true });
+    client.foo.bar.add('bazz');
 
-    client.show();
+    client.foo.bar.bazz.read(42, 21);
+    // GET /rest/api/foo/42/bar/bazz/21/
+    //        'bar' has no id  ^
 
   </script>
 

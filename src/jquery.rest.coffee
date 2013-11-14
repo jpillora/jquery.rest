@@ -2,7 +2,7 @@
 
 #helpers
 error = (msg) ->
-  throw "ERROR: jquery.rest: #{msg}"
+  throw new Error "ERROR: jquery.rest: #{msg}"
 
 s = (n) -> t = ""; t += "  " while n-- >0; t
 
@@ -37,6 +37,7 @@ defaultOpts =
   cache: 0
   request: (resource, options) -> $.ajax(options)
   isSingle: false
+  autoClearCache: true
   cachableMethods: ['GET']
   methodOverride: false
   stringifyData: false
@@ -245,6 +246,10 @@ class Resource
       key = @root.cache.key ajaxOpts
       req = @root.cache.get key
       return req if req
+
+    if @opts.cache && @opts.autoClearCache && $.inArray(method, @opts.cachableMethods) is -1
+      escapedUrl = url.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1")
+      @root.cache.clear(new RegExp(escapedUrl))
 
     req = @opts.request @parent, ajaxOpts
 

@@ -319,7 +319,7 @@ comment.read(42,21,7);
 comment.update(42,21,7, {...});
 ```
 
-##### Global/Singleton Example
+##### Global Client Example
 ``` javascript
 $.client = new $.RestClient('/rest/api/');
 
@@ -341,6 +341,22 @@ client.add('bar', { methodOverride: true });
 client.bar.update(42);
 // GET /rest/api/bar/42/
 // with header 'X-HTTP-Method-Override: PUT'
+```
+
+##### Singleton Resource Example
+
+``` javascript
+
+var client = new $.RestClient('/rest/api/');
+
+client.add('foo');
+client.foo.add('bar', { isSingle: true });
+client.foo.bar.add('bazz');
+
+client.foo.bar.bazz.read(42, 21);
+// GET /rest/api/foo/42/bar/bazz/21/
+//        'bar' has no id  ^
+
 ```
 
 API
@@ -439,7 +455,7 @@ When `true`, requests (excluding HEAD and GET) become POST requests and the meth
 
 ### request
 
-The function used to perform the request. By default, it is:
+The function used to perform the request (must return a jQuery Deferred). By default, it is:
 
 ``` js
 request: function(resource, options) {
@@ -447,15 +463,19 @@ request: function(resource, options) {
 }
 ```
 
-### isSignle
+### isSingle
 
 When `true`, resource is perceived as singleton:
 
-``` js
-schema.add('session', { isSingle: true });
-```
+See
 
-*Note: Want more options ? Open up a New Feature Issue above.*
+### autoClearCache
+
+When `false`, non-cachable requests (`PUT`, `POST` or `DELETE` - those not in `cachableTypes`) **won't** automatically clear the request's entry in the cache.
+
+> *Note: Want more options ? Open up a New Feature Issue above.*
+
+---
 
 Conceptual Overview
 ---
@@ -469,7 +489,6 @@ Todo
 ---
 * CSRF
 * Add Tests
-* Auto-Cache busting
 
 Contributing
 ---
