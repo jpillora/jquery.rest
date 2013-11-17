@@ -224,6 +224,7 @@ Resource = (function() {
       options.url = '';
     }
     this.opts = inheritExtend(this.parent.opts, options);
+    this.opts.isSingle = 'isSingle' in options && options.isSingle;
     this.root = this.parent.root;
     this.urlNoId = this.parent.url + ("" + (this.opts.url || this.name) + "/");
     this.url = this.urlNoId;

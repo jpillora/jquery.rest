@@ -1,8 +1,6 @@
 jQuery REST Client
 =====
-v0.0.7
-
-[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/fb83bb834123c2ede226e1931ea6956a "githalytics.com")](http://githalytics.com/jpillora/jquery.rest)
+v1.0.0
 
 <a href="https://twitter.com/intent/tweet?hashtags=jquery%2Crest&original_referer=http%3A%2F%2Fgithub.com%2F&text=A+jQuery+plugin+for+easy+consumption+of+RESTful+APIs&tw_p=tweetbutton&url=https%3A%2F%2Fgithub.com%2Fjpillora%2Fjquery.rest" target="_blank">
   <img src="http://jpillora.com/github-twitter-button/img/tweet.png"></img>
@@ -15,14 +13,14 @@ A jQuery plugin for easy consumption of RESTful APIs
 Downloads
 ---
 
-* [Development Version](http://jqueryrest.jpillora.com)
-* [Production Version](http://jqueryrestmin.jpillora.com)
+* [Development Version](http://jpillora.com/jquery.rest/dist/1/jquery.rest.js)
+* [Production Version](http://jpillora.com/jquery.rest/dist/1/jquery.rest.min.js)
 
 *File Size Report*
 ```
-Original: 9715 bytes.
-Minified: 5399 bytes.
-Gzipped:  1247 bytes.
+Original: 10292 bytes.
+Minified: 5910 bytes.
+Gzipped:  1375 bytes.
 ```
 
 Features
@@ -48,7 +46,7 @@ First setup your page:
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
 
 <!-- jQuery rest -->
-<script src="http://jpillora.com/jquery.rest/dist/jquery.rest.min.js"></script>
+<script src="http://jpillora.com/jquery.rest/dist/1/jquery.rest.min.js"></script>
 <!-- WARNING: I advise not using this link, instead download and host this library on your own server as GitHub has download limits -->
 
 <script>
@@ -330,6 +328,7 @@ $.client.add('foo');
 *Note: This is not best practise, use RequireJS, CommonJS or similar !*
 
 ##### Method Override Header
+
 ``` javascript
 var client = new $.RestClient('/rest/api/');
 
@@ -339,7 +338,7 @@ client.foo.update(42);
 
 client.add('bar', { methodOverride: true });
 client.bar.update(42);
-// GET /rest/api/bar/42/
+// POST /rest/api/bar/42/
 // with header 'X-HTTP-Method-Override: PUT'
 ```
 
@@ -492,14 +491,18 @@ Todo
 
 Contributing
 ---
-Issues and pull-requests welcome. To build: `cd *dir*` then `npm install` then `grunt`. Grunt wil compile the source `jquery.rest.coffee` into `.js` which will then get minified `min.js`.
+
+See CONTRIBUTING.md
 
 Change Log
 ---
 
+* v1.0.0 - Stable v1. Added `isSingle` and `autoClearCache` by @stalniy
 * v0.0.6 - Added `methodOverride` option
 * v0.0.5 - Minor bug fixes
 * v0.0.4 - Simplified API
 * v0.0.3 - Added into the jQuery Plugin Repo
 * v0.0.2 - Bug fixes
 * v0.0.1 - Beta Version
+
+[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/fb83bb834123c2ede226e1931ea6956a "githalytics.com")](http://githalytics.com/jpillora/jquery.rest)

@@ -120,7 +120,7 @@ class Resource
       validateStr 'name', @name
       @constructChild parent, options
     else
-      @url = nameOrUrl || ''
+      @url = nameOrUrl or ''
       validateStr 'url', @url
       @constructRoot options
 
@@ -132,7 +132,7 @@ class Resource
 
     @cache = new Cache @
     @parent = null
-    @name = @opts.name || 'ROOT'
+    @name = @opts.name or 'ROOT'
 
   constructChild: (@parent, options) ->
     validateStr 'name', @name
@@ -141,8 +141,12 @@ class Resource
 
     options.url = '' unless options.url
     @opts = inheritExtend @parent.opts, options
+
+    #dont use parent `isSingle`
+    @opts.isSingle = 'isSingle' of options and options.isSingle
+
     @root = @parent.root
-    @urlNoId = @parent.url + "#{@opts.url || @name}/"
+    @urlNoId = @parent.url + "#{@opts.url or @name}/"
     @url = @urlNoId
     @expectedIds = @parent.expectedIds
 
@@ -247,7 +251,8 @@ class Resource
       req = @root.cache.get key
       return req if req
 
-    if @opts.cache && @opts.autoClearCache && $.inArray(method, @opts.cachableMethods) is -1
+    #when method not in cachable methds, clear cache entries matching this url
+    if @opts.cache and @opts.autoClearCache and $.inArray(method, @opts.cachableMethods) is -1
       escapedUrl = url.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1")
       @root.cache.clear(new RegExp(escapedUrl))
 

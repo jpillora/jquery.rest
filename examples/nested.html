@@ -36,7 +36,7 @@
       // GET /rest/api/foo/{ID Placeholder}/baz/
       // ERROR ! Invalid number of arguments
     } catch(e) {
-      console.error(e);
+      console.error(e.toString());
     }
 
     client.foo.baz.read("42");

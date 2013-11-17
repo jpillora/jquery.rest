@@ -24,8 +24,6 @@
 
     client.addVerb('data', 'GET');
 
-    client.show();
-
     var n = 0;
     var request = function() {
       var wait = Math.round(Math.random()*1500);
@@ -34,13 +32,13 @@
       if(n <= 20) 
       setTimeout(request, wait);
     };
-    request();
 
     $.ajaxPrefilter( function( options ) {
-
-      console.log(options);
-
+      console.log("make request:", options);
     });
+
+    request();
+
 
   </script>
 
