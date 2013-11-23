@@ -466,7 +466,7 @@ request: function(resource, options) {
 
 When `true`, resource is perceived as singleton:
 
-See
+See [Singleton Resource Example](https://github.com/jpillora/jquery.rest/#singleton-resource-example)
 
 ### autoClearCache
 
