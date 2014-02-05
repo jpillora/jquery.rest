@@ -228,7 +228,7 @@ class Resource
       encoded = encode64 @opts.username + ":" + @opts.password
       headers.Authorization = "Basic #{encoded}"
 
-    if data and @opts.stringifyData
+    if data and @opts.stringifyData and method not in ['GET', 'HEAD']
       data = stringify data
       headers['Content-Type'] = "application/json"
 

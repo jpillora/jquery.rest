@@ -1,6 +1,6 @@
 jQuery REST Client
 =====
-v1.0.0
+v1.0.1
 
 <a href="https://twitter.com/intent/tweet?hashtags=jquery%2Crest&original_referer=http%3A%2F%2Fgithub.com%2F&text=A+jQuery+plugin+for+easy+consumption+of+RESTful+APIs&tw_p=tweetbutton&url=https%3A%2F%2Fgithub.com%2Fjpillora%2Fjquery.rest" target="_blank">
   <img src="http://jpillora.com/github-twitter-button/img/tweet.png"></img>
@@ -18,9 +18,9 @@ Downloads
 
 *File Size Report*
 ```
-Original: 10292 bytes.
-Minified: 5910 bytes.
-Gzipped:  1375 bytes.
+Original: 10314 bytes.
+Minified: 5920 bytes.
+Gzipped:  1376 bytes.
 ```
 
 Features
