@@ -177,7 +177,7 @@ client.foo.read();
 ``` javascript
 var client = new $.RestClient('/rest/api/', {
   cache: 5 //This will cache requests for 5 seconds
-  cachableTypes: ["GET"] //This defines what method types can be cached (this is already set by default)
+  cachableMethods: ["GET"] //This defines what method types can be cached (this is already set by default)
 });
 
 client.add('foo');
