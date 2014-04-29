@@ -1,15 +1,17 @@
-## How to test jQuery.rest locally
+## How to run locally
 
-* Install Node http://nodejs.org
+* Install [Node](http://nodejs.org)
 
-* `npm install -g grunt-source`
+* Fork and clone `git clone https://github.com/USERNAME/xdomain`
 
-* `git clone https://github.com/jpillora/jquery.rest`
+* Enter project `cd xdomain`
 
-* `cd jquery.rest`
+* Install [`grunt-source`](https://github.com/jpillora/grunt-source) with `npm install -g grunt-source` (Grunt Source allows the use of external Grunt environments)
 
-* `grunt-source`
+* `grunt-source --server=3000` with optional `--livereload=true` and `--report=true`
 
-This will create an HTTP server on http://localhost:3000 inside the `jquery.rest` folder and will start watching `src` for changes and will then compile and minify into `dist`
+* Open Chrome `open http://localhost:3000/`
 
-### Issues and Pull-requests welcome.
+* Grunt will now be watch *src* for changes, then compiling and minifying into *dist*
+
+  ### Issues and Pull-requests welcome!
