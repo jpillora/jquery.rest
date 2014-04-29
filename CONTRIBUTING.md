@@ -2,9 +2,9 @@
 
 * Install [Node](http://nodejs.org)
 
-* Fork and clone `git clone https://github.com/USERNAME/xdomain`
+* Fork and clone `git clone https://github.com/USERNAME/jquery.rest`
 
-* Enter project `cd xdomain`
+* Enter project `cd jquery.rest`
 
 * Install [`grunt-source`](https://github.com/jpillora/grunt-source) with `npm install -g grunt-source` (Grunt Source allows the use of external Grunt environments)
 
