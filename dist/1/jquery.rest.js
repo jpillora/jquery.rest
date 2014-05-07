@@ -1,4 +1,4 @@
-// jQuery REST Client - v1.0.1 - https://github.com/jpillora/jquery.rest
+// jQuery REST Client - v1.0.2 - https://github.com/jpillora/jquery.rest
 // Jaime Pillora <dev@jpillora.com> - MIT Copyright 2014
 (function(window,$,undefined) {'use strict';
 var Cache, Resource, Verb, defaultOpts, deleteWarning, encode64, error, inheritExtend, s, stringify, validateOpts, validateStr;
@@ -390,4 +390,4 @@ Resource = (function() {
 Resource.defaults = defaultOpts;
 
 $.RestClient = Resource;
-}(this,jQuery));
+}.call(this,window,jQuery));

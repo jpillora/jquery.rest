@@ -1,11 +1,14 @@
 {
   "name": "jpillora/jquery.rest",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "main": "dist/1/jquery.rest.js",
   "description": "A jQuery plugin for easy consumption of REST APIs",
   "license": "MIT",
   "ignore": [
-    "!dist/1/jquery.rest.js"
+    "*",
+    "!bower.json",
+    "!dist/1/jquery.rest.js",
+    "!dist/1/jquery.rest.min.js"
   ],
   "dependencies": {},
   "devDependencies": {}
