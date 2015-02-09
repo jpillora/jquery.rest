@@ -76,7 +76,7 @@ client.add('foo');
 
 var request = client.foo.read();
 // GET /rest/api/foo/
-request.done(function (data){
+request.done(function (data, textStatus, xhrObject){
   alert('I have data: ' + data);
 });
 
@@ -529,3 +529,5 @@ IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
 CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+[![Analytics](https://ga-beacon.appspot.com/UA-38709761-3/jquery.rest/readme)](https://github.com/igrigorik/ga-beacon)
