@@ -404,11 +404,11 @@ See defaults [here](https://github.com/jpillora/jquery.rest/blob/gh-pages/src/jq
 
 #### cache
 
-A number reprenting the number of seconds to used previously cached requests. When set to `0`, no requests are stored.
+A number representing the number of seconds to used previously cached requests. When set to `0`, no requests are stored.
 
 ### cachableMethods
 
-An array of strings reprenting the HTTP method types that can be cached. Is `["GET"]` by default.
+An array of strings representing the HTTP method types that can be cached. Is `["GET"]` by default.
 
 #### verbs
 
